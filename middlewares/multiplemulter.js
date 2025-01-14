@@ -1,0 +1,9 @@
+import multer from "multer";
+
+const storage = multer.memoryStorage();
+
+// Configure to handle multiple files
+export const  multipleUpload = multer({ storage }).fields([
+  { name: "panImageFile", maxCount: 1 },
+  { name: "adImageFile", maxCount: 1 },
+]);
