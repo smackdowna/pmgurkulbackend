@@ -5,7 +5,7 @@ import {
   getAllOrders,
   getSingleOrder,
   myOrders,
-} from "../controllers/orderCOntroller.js";
+} from "../controllers/orderController.js";
 import {
   checkout,
   paymentVerification,
