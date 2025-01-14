@@ -1,6 +1,6 @@
 import express from "express";
 import { isAuthenticated, authorizeRoles } from "../middlewares/auth.js";
-import { allEarnings, allEarningsApproved, allEarningsPending } from "../controllers/earningsController.js";
+import { allEarnings, allEarningsApproved, allEarningsPending, approvePayout } from "../controllers/earningsController.js";
 
 
 const router = express.Router();
