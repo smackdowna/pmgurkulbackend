@@ -26,7 +26,6 @@ router.route("/courses").get(getAllCourses);
 router
   .route("/course/:id")
   .get(getCourseLectures)
-  .get(getCoursedetails)
   .put(isAuthenticated, authorizeRoles("admin"), singleUpload, addLectures)
   .delete(isAuthenticated, authorizeRoles("admin"), deleteCourse);
 
@@ -36,6 +35,9 @@ router.route("/lectures").delete(isAuthenticated, authorizeRoles("admin"),delete
 
 //has purchased the course
 router.route("/courses/:id").get(isAuthenticated,hasPurchasedCourse,getCoursedetails);
+
+//get single course details
+router.route("/course/single/:id").get(getCoursedetails);
 
 
 export default router;
