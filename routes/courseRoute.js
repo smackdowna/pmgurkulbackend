@@ -26,6 +26,7 @@ router.route("/courses").get(getAllCourses);
 router
   .route("/course/:id")
   .get(getCourseLectures)
+  .get(getCoursedetails)
   .put(isAuthenticated, authorizeRoles("admin"), singleUpload, addLectures)
   .delete(isAuthenticated, authorizeRoles("admin"), deleteCourse);
 
