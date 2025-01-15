@@ -6,7 +6,7 @@ import { getReferralSummary } from "../controllers/transactionHistory.js";
 const router = express.Router();
 
 //create order
-router.route("/user/summary").get(isAuthenticated,getReferralSummary);
+router.route("/refral/summary").get(isAuthenticated,getReferralSummary);
 
 
 
