@@ -530,3 +530,25 @@ export const approveKYCStatus = catchAsyncError(async (req, res, next) => {
     user,
   });
 });
+
+//get all purchased courses
+export const getUserPurchasedCourses = catchAsyncError(
+  async (req, res, next) => {
+    // Find the user by ID
+    const user = await User.findById(req.user.id).populate(
+      "Course",
+      "title description poster numOfVideos category"
+    );
+
+    // If the user is not found
+    if (!user) {
+      return next(new ErrorHandler("User not found", 404));
+    }
+
+    // Return the purchased courses
+    res.status(200).json({
+      success: true,
+      purchasedCourses: user.purchasedCourses,
+    });
+  }
+);

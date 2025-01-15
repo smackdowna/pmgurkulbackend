@@ -1,5 +1,5 @@
 import express from "express";
-import { isAuthenticated, authorizeRoles } from "../middlewares/auth.js";
+import { isAuthenticated} from "../middlewares/auth.js";
 import { getReferralSummary } from "../controllers/transactionHistory.js";
 
 

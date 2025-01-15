@@ -6,6 +6,7 @@ import {
   getAllUser,
   getmyProfile,
   getSingleUser,
+  getUserPurchasedCourses,
   getUsersWithPendingKYC,
   logout,
   registerUser,
@@ -64,5 +65,8 @@ router
 router
   .route("/user/:id")
   .put(isAuthenticated, authorizeRoles("admin"), approveKYCStatus);
+
+router.route("/purchased/course").get(isAuthenticated,getUserPurchasedCourses);
+
 
 export default router;
