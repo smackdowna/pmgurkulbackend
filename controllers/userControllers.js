@@ -536,7 +536,7 @@ export const getUserPurchasedCourses = catchAsyncError(
   async (req, res, next) => {
     // Find the user by ID
     const user = await User.findById(req.user.id).populate(
-      "course",
+      "purchasedCourses",
       "title description poster numOfVideos category"
     );
 
