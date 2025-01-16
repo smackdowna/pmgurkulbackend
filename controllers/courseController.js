@@ -6,9 +6,9 @@ import getDataUri from "../utils/dataUri.js";
 
 //create course
 export const createCourse = catchAsyncError(async (req, res, next) => {
-  const { title, description, category, basePrice, discountedPrice } = req.body;
+  const { title, description, category, author,basePrice, discountedPrice } = req.body;
 
-  if ((!title || !description, !category || !basePrice || !discountedPrice))
+  if ((!title || !description || !category || !author || !basePrice || !discountedPrice))
     return next(new ErrorHandler("Please Enter all fields", 400));
 
   const file = req.file;
@@ -20,6 +20,7 @@ export const createCourse = catchAsyncError(async (req, res, next) => {
     title,
     description,
     category,
+    author,
     basePrice,
     discountedPrice,
     poster: {
@@ -36,12 +37,30 @@ export const createCourse = catchAsyncError(async (req, res, next) => {
 
 //get all course
 export const getAllCourses = catchAsyncError(async (req, res, next) => {
-  const courses = await Course.find().select("-lectures");
+  const { search, category } = req.query;
+
+  // Define a query object
+  const query = {};
+
+  // Add search by course name (title)
+  if (search) {
+    query.title = { $regex: search, $options: "i" }; // Case-insensitive partial match
+  }
+
+  // Add filter by category
+  if (category) {
+    query.category = category;
+  }
+
+  // Fetch courses based on query
+  const courses = await Course.find(query).select("-lectures");
+
   res.status(200).json({
     success: true,
     courses,
   });
 });
+
 
 //get course lectures
 export const getCourseLectures = catchAsyncError(async (req, res, next) => {
@@ -157,5 +176,27 @@ export const getCoursedetails = catchAsyncError(async (req, res, next) => {
   res.status(200).json({
     success: true,
     course,
+  });
+});
+
+
+
+//get categories
+export const getAllCategories = catchAsyncError(async (req, res, next) => {
+  // Use Mongoose `distinct` to get unique categories
+  const categories = await Course.distinct("category");
+
+  // If no categories found
+  if (!categories || categories.length === 0) {
+    return res.status(404).json({
+      success: false,
+      message: "No categories found",
+    });
+  }
+
+  // Send response
+  res.status(200).json({
+    success: true,
+    categories,
   });
 });

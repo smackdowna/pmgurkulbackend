@@ -5,6 +5,7 @@ import {
   createCourse,
   deleteCourse,
   deleteLectures,
+  getAllCategories,
   getAllCourses,
   getCoursedetails,
   getCourseLectures,
@@ -38,6 +39,10 @@ router.route("/courses/:id").get(isAuthenticated,hasPurchasedCourse,getCoursedet
 
 //get single course details
 router.route("/course/single/:id").get(getCoursedetails);
+
+
+//get category
+router.route("/category").get(getAllCategories);
 
 
 export default router;

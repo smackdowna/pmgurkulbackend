@@ -11,6 +11,10 @@ const schema = new mongoose.Schema({
     type: String,
     required: [true, "Please enter course title"],
   },
+  author:{
+    type: String,
+    required: [true, "Please enter course author"],
+  },
   lectures: [
     {
       title: {
