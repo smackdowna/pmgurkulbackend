@@ -77,6 +77,8 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
     await referrer.save(); // Save referrer's updated earnings
   }
 
+  
+
   // Log the earnings into the Earnings table (for the referrer)
   await Earnings.create({
     user: referrer._id,
@@ -88,6 +90,9 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
     tds,
     amountCredited, // Referrer's net amount after TDS// Net amount credited to the referrer
   });
+
+  course.totalEnrolled+=1;
+  await course.save();
 
   // Send response with order details
   res.status(200).json({

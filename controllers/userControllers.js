@@ -72,6 +72,7 @@ export const verifyOTP = catchAsyncError(async (req, res, next) => {
 });
 
 //registration
+//registration
 export const registerUser = catchAsyncError(async (req, res, next) => {
   const {
     full_name,
@@ -92,14 +93,17 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
   } = req.body;
 
   // Uploaded files
-  const { panImageFile, adImageFile } = req.files;
+  const { panImageFile, adImageFile, passbookImageFile } = req.files;
 
   if (!mobileNumber)
     return next(new ErrorHandler("Mobile number is required", 400));
 
-  if (!panImageFile || !adImageFile)
+  if (!panImageFile || !adImageFile || !passbookImageFile)
     return next(
-      new ErrorHandler("Enter adhar card image or pan card image", 400)
+      new ErrorHandler(
+        "Enter Aadhaar card image, PAN card image, and passbook image",
+        400
+      )
     );
 
   // Check if the user already exists with the same mobile number and is verified
@@ -176,6 +180,19 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
       };
     }
 
+    // Upload passbook image to ImageKit
+    let passbookImage = null;
+    if (passbookImageFile && passbookImageFile[0]) {
+      const passbookUploadResponse = await imagekit.upload({
+        file: passbookImageFile[0].buffer, // Buffer data
+        fileName: `passbook_${Date.now()}.jpg`, // Unique filename
+      });
+      passbookImage = {
+        public_id: passbookUploadResponse.fileId,
+        url: passbookUploadResponse.url,
+      };
+    }
+
     // Ensure bank info is parsed correctly (if it is a string)
     let parsedBankInfo = Array.isArray(bankInfo)
       ? bankInfo
@@ -191,6 +208,7 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
       adNumber,
       adImage,
     };
+    unverifiedUser.passbookImage = passbookImage; // Save passbook image
 
     // Save the updated user
     await unverifiedUser.save();
@@ -231,6 +249,8 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
 
   let panImage = null;
   let adImage = null;
+  let passbookImage = null;
+
   // Upload PAN card image to ImageKit
   if (panImageFile && panImageFile[0]) {
     const panUploadResponse = await imagekit.upload({
@@ -251,6 +271,17 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     adImage = {
       public_id: adUploadResponse.fileId,
       url: adUploadResponse.url,
+    };
+  }
+
+  if (passbookImageFile && passbookImageFile[0]) {
+    const passbookUploadResponse = await imagekit.upload({
+      file: passbookImageFile[0].buffer, // Buffer data
+      fileName: `passbook_${Date.now()}.jpg`, // Unique filename
+    });
+    passbookImage = {
+      public_id: passbookUploadResponse.fileId,
+      url: passbookUploadResponse.url,
     };
   }
 
@@ -282,10 +313,12 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
       adNumber,
       adImage,
     },
+    passbookImage, // Save passbook image
   });
 
   sendToken(res, user, "Registered Successfully", 200);
 });
+
 
 //get my profile
 export const getmyProfile = catchAsyncError(async (req, res, next) => {
@@ -332,7 +365,7 @@ export const updateUserDetails = catchAsyncError(async (req, res, next) => {
   } = req.body;
 
   // Uploaded files
-  const { panImageFile, adImageFile } = req.files || {};
+  const { panImageFile, adImageFile, passbookImageFile } = req.files || {};
 
   // Ensure the user is logged in
   const userId = req.user.id;
@@ -404,6 +437,25 @@ export const updateUserDetails = catchAsyncError(async (req, res, next) => {
     user.addharCard.adImage = {
       public_id: adUploadResponse.fileId,
       url: adUploadResponse.url,
+    };
+  }
+
+  // Update passbook image if provided
+  if (passbookImageFile && passbookImageFile[0]) {
+    // Delete the old passbook image from ImageKit
+    if (user.passbookImage?.public_id) {
+      await imagekit.deleteFile(user.passbookImage.public_id);
+    }
+
+    // Upload the new passbook image
+    const passbookUploadResponse = await imagekit.upload({
+      file: passbookImageFile[0].buffer,
+      fileName: `passbook_${Date.now()}.jpg`,
+    });
+
+    user.passbookImage = {
+      public_id: passbookUploadResponse.fileId,
+      url: passbookUploadResponse.url,
     };
   }
 

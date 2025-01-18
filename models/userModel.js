@@ -95,6 +95,14 @@ const schema = new mongoose.Schema({
       },
     },
   ],
+  passbookImage:{
+    public_id: {
+      type: String,
+    },
+    url: {
+      type: String,
+    },
+  },
   refralCode: {
     type: String,
   },
@@ -128,15 +136,6 @@ const schema = new mongoose.Schema({
   otp_expiry: {
     type: Date,
   },
-  playlist: [
-    {
-      course: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Course",
-      },
-      poster: String,
-    },
-  ],
   purchasedCourses: [
     {
       type: mongoose.Schema.Types.ObjectId,

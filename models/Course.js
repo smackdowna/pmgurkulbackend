@@ -35,6 +35,10 @@ const schema = new mongoose.Schema({
           required: true,
         },
       },
+      videoDuration:{
+        type: String,
+        required:true,
+      },
     },
   ],
   poster: {
@@ -50,6 +54,14 @@ const schema = new mongoose.Schema({
   numOfVideos: {
     type: Number,
     default: 0,
+  },
+  totalEnrolled:{
+    type:Number,
+    default: 0,
+  },  
+  totalDuration:{
+    type:String,
+    required: true,
   },
   category: {
     type: String,
