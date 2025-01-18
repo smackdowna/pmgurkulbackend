@@ -72,7 +72,6 @@ export const verifyOTP = catchAsyncError(async (req, res, next) => {
 });
 
 //registration
-//registration
 export const registerUser = catchAsyncError(async (req, res, next) => {
   const {
     full_name,
@@ -135,6 +134,7 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
 
     // Update the unverified user's details
     unverifiedUser.full_name = full_name || unverifiedUser.full_name;
+    unverifiedUser.email = email || unverifiedUser.email;
     unverifiedUser.gender = gender || unverifiedUser.gender;
     unverifiedUser.language = language || unverifiedUser.language;
     unverifiedUser.dob = dob || unverifiedUser.dob;
