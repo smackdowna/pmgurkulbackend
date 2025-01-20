@@ -6,11 +6,13 @@ const schema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
-  course: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Course",
-    required: true,
-  },
+  course: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
+      required: true,
+    },
+  ],
   discountedPrice: {
     type: Number,
     required: true,
@@ -19,7 +21,7 @@ const schema = new mongoose.Schema({
     type: Number,
     default: 18, // GST percentage
   },
-  totalPrice:{
+  totalPrice: {
     type: Number,
     required: true,
   },
@@ -36,7 +38,7 @@ const schema = new mongoose.Schema({
     required: true,
   },
   razorpay_payment_id: {
-    type: String
+    type: String,
   },
   createdAt: {
     type: Date,

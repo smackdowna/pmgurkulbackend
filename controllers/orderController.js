@@ -9,18 +9,29 @@ import { Earnings } from "../models/Earning.js";
 export const createOrder = catchAsyncError(async (req, res, next) => {
   const { courseId } = req.body;
 
-  // Check if courseId is provided
-  if (!courseId) return next(new ErrorHandler("Enter Course ID", 404));
-
-  // Find course by courseId
-  const course = await Course.findById(courseId);
-  if (!course) return next(new ErrorHandler("Course Not Found", 404));
+  // Check if courseId is provided and is an array
+  if (!courseId || !Array.isArray(courseId) || courseId.length === 0) {
+    return next(new ErrorHandler("Enter valid Course IDs", 400));
+  }
 
   const user = await User.findById(req.user.id);
-  if (user.purchasedCourses.includes(courseId)) {
-    return next(
-      new ErrorHandler("You have already purchased this course.", 400)
-    );
+
+  const orderCourses = [];
+  let totalPrice = 0;
+  let discountedPriceTotal = 0;
+
+  // Process each course ID in the array
+  for (const id of courseId) {
+    const course = await Course.findById(id);
+    if (!course) return next(new ErrorHandler(`Course with ID ${id} not found`, 404));
+
+    // Check if the user has already purchased this course
+    if (user.purchasedCourses.includes(id)) {
+      return next(new ErrorHandler(`You have already purchased course with ID ${id}`, 400));
+    }
+
+    orderCourses.push(course._id);
+    discountedPriceTotal += course.discountedPrice;
   }
 
   // Find the referrer (the user who referred the current user)
@@ -30,16 +41,12 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
   // Get the referral code used by the current user
   const referralCodeUsed = referrer.refralCode;
 
-  // Get the discounted price from the course
-  const discountedPrice = course.discountedPrice;
+  // Calculate GST (18% on total discounted price)
+  const gstAmount = (discountedPriceTotal * 18) / 100;
+  totalPrice = discountedPriceTotal + gstAmount;
 
-  let totalPrice = 0;
-  // Calculate GST (18% on discounted price)
-  const gstAmount = (discountedPrice * 18) / 100;
-  totalPrice = discountedPrice + gstAmount;
-
-  // Commission calculation (50% of the discounted price)
-  const commission = (discountedPrice * 50) / 100;
+  // Commission calculation (50% of the total discounted price)
+  const commission = (discountedPriceTotal * 50) / 100;
 
   // TDS calculation (5% of commission)
   const tds = (commission * 5) / 100;
@@ -47,13 +54,13 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
   // Amount credited to referrer (after TDS deduction)
   const amountCredited = commission - tds;
 
-  // Create the order with initial details
+  // Create the order with all course IDs
   const order = await Order.create({
     user: req.user.id,
-    course: courseId,
+    course: orderCourses,
     referralCodeUsed,
     totalPrice,
-    discountedPrice,
+    discountedPrice: discountedPriceTotal,
     gst: 18, // You can make this dynamic if necessary
     commission,
     tds,
@@ -61,46 +68,40 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
   });
 
   // Update the user (purchaser) details after course purchase
-
-  if (user) {
-    user.purchasedCourses.push(courseId);
-    await user.save();
-  }
+  user.purchasedCourses.push(...orderCourses);
+  await user.save();
 
   // Update the referrer's earnings after commission and TDS deduction
-  if (referrer) {
-    // Ensure earnings object is initialized
-    if (!referrer.earnings || typeof referrer.earnings.total !== "number") {
-      referrer.earnings = { total: 0 };
-    }
-    referrer.earnings.total += amountCredited; // Update total earnings
-    await referrer.save(); // Save referrer's updated earnings
-  }
-
-  
+  referrer.earnings.total += amountCredited; // Update total earnings
+  await referrer.save();
 
   // Log the earnings into the Earnings table (for the referrer)
   await Earnings.create({
     user: referrer._id,
     order: order._id,
     totalPrice,
-    discountedPrice,
-    gst: 18, // You can make this dynamic if necessary
+    discountedPrice: discountedPriceTotal,
+    gst: 18,
     commission,
     tds,
-    amountCredited, // Referrer's net amount after TDS// Net amount credited to the referrer
+    amountCredited,
   });
 
-  course.totalEnrolled+=1;
-  await course.save();
+  // Increment totalEnrolled for each course
+  for (const id of orderCourses) {
+    const course = await Course.findById(id);
+    course.totalEnrolled += 1;
+    await course.save();
+  }
 
   // Send response with order details
   res.status(200).json({
     success: true,
-    message: "Course Purchased! You can start learning.",
+    message: "Courses Purchased! You can start learning.",
     order,
   });
 });
+
 
 //get my order
 export const myOrders = catchAsyncError(async (req, res, next) => {
