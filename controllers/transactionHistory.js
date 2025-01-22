@@ -51,13 +51,16 @@ export const getReferralSummary = catchAsyncError(async (req, res, next) => {
         email: referredUser.email,
         mobileNumber: referredUser.mobileNumber,
         purchasedCourses: orders
-          .filter((order) => order.user.toString() === referredUser._id.toString())
-          .map((order) => ({
-            courseId: order.course._id,
-            courseTitle: order.course.title,
-            amountCredited: order.amountCredited,
-            dateOfPurchase: moment(order.createdAt).format("YYYY-MM-DD HH:mm:ss"), // Added date of purchase
-          })),
+        .filter((order) => order.user.toString() === referredUser._id.toString())
+        .flatMap((order) =>
+          order.course.map((course) => ({
+             courseId: course._id,
+             courseTitle: course.title,
+             amountCredited: order.amountCredited,
+             dateOfPurchase: moment(order.createdAt).format("YYYY-MM-DD HH:mm:ss"),
+    }))
+  ),
+
       })),
       totalEarnings,
       dailyEarnings,
