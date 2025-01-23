@@ -10,6 +10,7 @@ import {
   getUsersWithPendingKYC,
   logout,
   registerUser,
+  rejectKYCStatus,
   removeFromPlaylist,
   sendOTP,
   updateUserDetails,
@@ -65,6 +66,10 @@ router
 router
   .route("/user/:id")
   .put(isAuthenticated, authorizeRoles("admin"), approveKYCStatus);
+
+  router
+  .route("/user/reject/:id")
+  .put(isAuthenticated, authorizeRoles("admin"), rejectKYCStatus);  
 
 router.route("/purchased/course").get(isAuthenticated,getUserPurchasedCourses);
 

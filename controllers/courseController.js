@@ -38,14 +38,17 @@ export const createCourse = catchAsyncError(async (req, res, next) => {
 
 //get all course
 export const getAllCourses = catchAsyncError(async (req, res, next) => {
-  const { search, category } = req.query;
+  const { keyword, category } = req.query; // Assuming 'keyword' is passed as a query param
 
-  // Define a query object
+  // Define the query object
   const query = {};
 
-  // Add search by course name (title)
-  if (search) {
-    query.title = { $regex: search, $options: "i" }; // Case-insensitive partial match
+  // Add search by course name (title) using the 'keyword'
+  if (keyword) {
+    query.title = {
+      $regex: keyword.trim(), // Ensure no extra spaces
+      $options: "i", // Case-insensitive search
+    };
   }
 
   // Add filter by category
@@ -53,7 +56,7 @@ export const getAllCourses = catchAsyncError(async (req, res, next) => {
     query.category = category;
   }
 
-  // Fetch courses based on query
+  // Fetch courses based on the query
   const courses = await Course.find(query).select("-lectures");
 
   res.status(200).json({
@@ -61,6 +64,7 @@ export const getAllCourses = catchAsyncError(async (req, res, next) => {
     courses,
   });
 });
+
 
 
 //get course lectures

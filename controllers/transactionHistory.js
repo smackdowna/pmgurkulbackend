@@ -19,7 +19,10 @@ export const getReferralSummary = catchAsyncError(async (req, res, next) => {
 
   // 2. Fetch orders placed by referred users
   const referredUserIds = referredUsers.map((u) => u._id);
-  const orders = await Order.find({ user: { $in: referredUserIds } }).populate("course", "title");
+  const orders = await Order.find({ user: { $in: referredUserIds } }).populate(
+    "course",
+    "title"
+  );
 
   // 3. Calculate total earnings, daily, weekly, and monthly earnings
   let totalEarnings = 0;
@@ -34,8 +37,10 @@ export const getReferralSummary = catchAsyncError(async (req, res, next) => {
     totalEarnings += amountCredited;
 
     if (orderCreatedAt.isSame(moment(), "day")) dailyEarnings += amountCredited;
-    if (orderCreatedAt.isSame(moment(), "week")) weeklyEarnings += amountCredited;
-    if (orderCreatedAt.isSame(moment(), "month")) monthlyEarnings += amountCredited;
+    if (orderCreatedAt.isSame(moment(), "week"))
+      weeklyEarnings += amountCredited;
+    if (orderCreatedAt.isSame(moment(), "month"))
+      monthlyEarnings += amountCredited;
   });
 
   // 4. Calculate duration on the platform
@@ -51,16 +56,19 @@ export const getReferralSummary = catchAsyncError(async (req, res, next) => {
         email: referredUser.email,
         mobileNumber: referredUser.mobileNumber,
         purchasedCourses: orders
-        .filter((order) => order.user.toString() === referredUser._id.toString())
-        .flatMap((order) =>
-          order.course.map((course) => ({
-             courseId: course._id,
-             courseTitle: course.title,
-             amountCredited: order.amountCredited,
-             dateOfPurchase: moment(order.createdAt).format("YYYY-MM-DD HH:mm:ss"),
-    }))
-  ),
-
+          .filter(
+            (order) => order.user.toString() === referredUser._id.toString()
+          )
+          .flatMap((order) =>
+            order.course.map((course) => ({
+              courseId: course._id,
+              courseTitle: course.title,
+              amountCredited: order.amountCredited,
+              dateOfPurchase: moment(order.createdAt).format(
+                "YYYY-MM-DD HH:mm:ss"
+              ),
+            }))
+          ),
       })),
       totalEarnings,
       dailyEarnings,

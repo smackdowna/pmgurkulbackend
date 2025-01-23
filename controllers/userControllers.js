@@ -583,6 +583,27 @@ export const approveKYCStatus = catchAsyncError(async (req, res, next) => {
   });
 });
 
+
+//Reject KYC
+export const rejectKYCStatus = catchAsyncError(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    return next(new ErrorHandler("User not found with this ID", 404));
+  }
+
+  // Update the KYC status to "Approved"
+  user.kyc_status = "Reject";
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "KYC status updated to Reject",
+    user,
+  });
+});
+
+
 //get all purchased courses
 export const getUserPurchasedCourses = catchAsyncError(
   async (req, res, next) => {
