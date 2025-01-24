@@ -16,7 +16,7 @@ export const createCourse = catchAsyncError(async (req, res, next) => {
   const fileUri = getDataUri(file);
   const mycloud = await cloudinary.v2.uploader.upload(fileUri.content);
 
-  await Course.create({
+  const course = await Course.create({
     title,
     description,
     category,
@@ -33,6 +33,7 @@ export const createCourse = catchAsyncError(async (req, res, next) => {
   res.status(201).json({
     success: true,
     message: "Course Created successfully.You can add lectures now",
+    course
   });
 });
 
