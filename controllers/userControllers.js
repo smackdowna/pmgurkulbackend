@@ -593,7 +593,7 @@ export const rejectKYCStatus = catchAsyncError(async (req, res, next) => {
   }
 
   // Update the KYC status to "Approved"
-  user.kyc_status = "Reject";
+  user.kyc_status = "Rejected";
   await user.save();
 
   res.status(200).json({

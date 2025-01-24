@@ -128,7 +128,7 @@ const schema = new mongoose.Schema({
   kyc_status: {
     type: String,
     default: "Pending",
-    enum: ["Pending", "Approved","Reject"],
+    enum: ["Pending", "Approved","Rejected"],
   },
   otp: {
     type: String,
