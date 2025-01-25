@@ -6,9 +6,29 @@ import getDataUri from "../utils/dataUri.js";
 
 //create course
 export const createCourse = catchAsyncError(async (req, res, next) => {
-  const { title, description, category, author,basePrice, discountedPrice,totalDuration } = req.body;
+  const {
+    title,
+    description,
+    courseOverview,
+    courseObjective,
+    category,
+    author,
+    basePrice,
+    discountedPrice,
+    totalDuration,
+  } = req.body;
 
-  if ((!title || !description || !category || !author || !basePrice || !discountedPrice || !totalDuration))
+  if (
+    !title ||
+    !description ||
+    !courseOverview ||
+    !courseObjective ||
+    !category ||
+    !author ||
+    !basePrice ||
+    !discountedPrice ||
+    !totalDuration
+  )
     return next(new ErrorHandler("Please Enter all fields", 400));
 
   const file = req.file;
@@ -19,6 +39,8 @@ export const createCourse = catchAsyncError(async (req, res, next) => {
   const course = await Course.create({
     title,
     description,
+    courseOverview,
+    courseObjective,
     category,
     author,
     basePrice,
@@ -33,7 +55,7 @@ export const createCourse = catchAsyncError(async (req, res, next) => {
   res.status(201).json({
     success: true,
     message: "Course Created successfully.You can add lectures now",
-    course
+    course,
   });
 });
 
@@ -66,8 +88,6 @@ export const getAllCourses = catchAsyncError(async (req, res, next) => {
   });
 });
 
-
-
 //get course lectures
 export const getCourseLectures = catchAsyncError(async (req, res, next) => {
   const course = await Course.findById(req.params.id);
@@ -83,7 +103,7 @@ export const getCourseLectures = catchAsyncError(async (req, res, next) => {
 //delete lectures
 export const addLectures = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
-  const { title, description,videoDuration } = req.body;
+  const { title, description, videoDuration } = req.body;
 
   const file = req.file;
 
@@ -185,8 +205,6 @@ export const getCoursedetails = catchAsyncError(async (req, res, next) => {
     course,
   });
 });
-
-
 
 //get categories
 export const getAllCategories = catchAsyncError(async (req, res, next) => {

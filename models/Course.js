@@ -11,7 +11,15 @@ const schema = new mongoose.Schema({
     type: String,
     required: [true, "Please enter course title"],
   },
-  author:{
+  courseOverview: {
+    type: String,
+    required: [true, "Please enter course title"],
+  },
+  courseObjective: {
+    type: String,
+    required: [true, "Please enter course title"],
+  },
+  author: {
     type: String,
     required: [true, "Please enter course author"],
   },
@@ -35,9 +43,9 @@ const schema = new mongoose.Schema({
           required: true,
         },
       },
-      videoDuration:{
+      videoDuration: {
         type: String,
-        required:true,
+        required: true,
       },
     },
   ],
@@ -55,12 +63,12 @@ const schema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  totalEnrolled:{
-    type:Number,
+  totalEnrolled: {
+    type: Number,
     default: 0,
-  },  
-  totalDuration:{
-    type:String,
+  },
+  totalDuration: {
+    type: String,
     required: true,
   },
   category: {
