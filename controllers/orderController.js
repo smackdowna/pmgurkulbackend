@@ -120,8 +120,9 @@ export const getAllOrders = catchAsyncError(async (req, res, next) => {
   const ordersCount = await Order.countDocuments();
 
   const orders = await Order.find()
-  .sort({ createdAt: -1 })
-  .populate("user", "full_name mobileNumber"); 
+    .sort({ createdAt: -1 })
+    .populate("user", "full_name mobileNumber") // Populate user with specific fields
+    .populate("course", "title description"); // Populate course with specific fields
 
   res.status(200).json({
     success: true,
@@ -129,6 +130,7 @@ export const getAllOrders = catchAsyncError(async (req, res, next) => {
     orders,
   });
 });
+
 
 
 //get single order
