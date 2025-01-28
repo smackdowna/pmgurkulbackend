@@ -97,13 +97,7 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
   if (!mobileNumber)
     return next(new ErrorHandler("Mobile number is required", 400));
 
-  if (!panImageFile || !adImageFile || !passbookImageFile)
-    return next(
-      new ErrorHandler(
-        "Enter Aadhaar card image, PAN card image, and passbook image",
-        400
-      )
-    );
+  
 
   // Check if the user already exists with the same mobile number and is verified
   let existingUser = await User.findOne({ mobileNumber, verified: true });

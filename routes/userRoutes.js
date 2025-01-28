@@ -65,7 +65,8 @@ router
 //chnage kyc status--Admin
 router
   .route("/user/:id")
-  .put(isAuthenticated, authorizeRoles("admin"), approveKYCStatus);
+  .put(isAuthenticated, authorizeRoles("admin"), approveKYCStatus)
+  .put(isAuthenticated, authorizeRoles("admin"),updateUserDetails)
 
   router
   .route("/user/reject/:id")
