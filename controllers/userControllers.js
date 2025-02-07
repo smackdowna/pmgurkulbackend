@@ -86,47 +86,31 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     city,
     pinCode,
     refralCode,
-    bankInfo, // Array of objects
-    panNumber, // PAN card number
-    adNumber, // Aadhaar card number
+    addline1, // New field
+    addline2, // New field
   } = req.body;
-
-  // Uploaded files
-  const { panImageFile, adImageFile, passbookImageFile } = req.files;
 
   if (!mobileNumber)
     return next(new ErrorHandler("Mobile number is required", 400));
 
-  
-
-  // Check if the user already exists with the same mobile number and is verified
   let existingUser = await User.findOne({ mobileNumber, verified: true });
-
   if (existingUser) {
     return next(
       new ErrorHandler("User with this mobile number already exists", 400)
     );
   }
 
-  // Check if the user exists but is not verified
   let unverifiedUser = await User.findOne({ mobileNumber, verified: false });
+  // if (!refralCode)
+  //   return next(
+  //     new ErrorHandler("Refral Code is required for registration", 400)
+  //   );
 
-  if (!refralCode)
-    return next(
-      new ErrorHandler("Refral Code is required for registration", 400)
-    );
-
-  // If an unverified user exists, update the user's details
   if (unverifiedUser) {
-    // Generate a new referral code if not already assigned (for unverified users)
     if (!unverifiedUser.refralCode) {
-      unverifiedUser.refralCode = `PM${crypto
-        .randomBytes(3)
-        .toString("hex")
-        .toUpperCase()}`;
+      unverifiedUser.refralCode = `PM${Math.floor(1000 + Math.random() * 9000)}`;
     }
 
-    // Update the unverified user's details
     unverifiedUser.full_name = full_name || unverifiedUser.full_name;
     unverifiedUser.email = email || unverifiedUser.email;
     unverifiedUser.gender = gender || unverifiedUser.gender;
@@ -137,76 +121,18 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     unverifiedUser.state = state || unverifiedUser.state;
     unverifiedUser.city = city || unverifiedUser.city;
     unverifiedUser.pinCode = pinCode || unverifiedUser.pinCode;
-    unverifiedUser.verified = "true";
+    unverifiedUser.verified = true;
+    unverifiedUser.addline1 = addline1 || unverifiedUser.addline1;
+    unverifiedUser.addline2 = addline2 || unverifiedUser.addline2;
 
-    // Handle referral code, similar to the previous logic
     if (refralCode) {
       const referredUser = await User.findOne({ refralCode });
       if (!referredUser)
         return next(new ErrorHandler("Invalid referral code", 400));
-
-      unverifiedUser.referredBy = referredUser._id; // Update the referring user
+      unverifiedUser.referredBy = referredUser._id;
     }
 
-    // Upload PAN card image to ImageKit
-    let panImage = null;
-    if (panImageFile && panImageFile[0]) {
-      const panUploadResponse = await imagekit.upload({
-        file: panImageFile[0].buffer, // Buffer data
-        fileName: `pan_${Date.now()}.jpg`, // Unique filename
-      });
-      panImage = {
-        public_id: panUploadResponse.fileId,
-        url: panUploadResponse.url,
-      };
-    }
-
-    // Upload Aadhaar card image to ImageKit
-    let adImage = null;
-    if (adImageFile && adImageFile[0]) {
-      const adUploadResponse = await imagekit.upload({
-        file: adImageFile[0].buffer, // Buffer data
-        fileName: `aadhaar_${Date.now()}.jpg`, // Unique filename
-      });
-      adImage = {
-        public_id: adUploadResponse.fileId,
-        url: adUploadResponse.url,
-      };
-    }
-
-    // Upload passbook image to ImageKit
-    let passbookImage = null;
-    if (passbookImageFile && passbookImageFile[0]) {
-      const passbookUploadResponse = await imagekit.upload({
-        file: passbookImageFile[0].buffer, // Buffer data
-        fileName: `passbook_${Date.now()}.jpg`, // Unique filename
-      });
-      passbookImage = {
-        public_id: passbookUploadResponse.fileId,
-        url: passbookUploadResponse.url,
-      };
-    }
-
-    // Ensure bank info is parsed correctly (if it is a string)
-    let parsedBankInfo = Array.isArray(bankInfo)
-      ? bankInfo
-      : JSON.parse(bankInfo);
-    // Update the user's bank information
-    unverifiedUser.bankInfo = parsedBankInfo;
-
-    unverifiedUser.panCard = {
-      panNumber,
-      panImage,
-    };
-    unverifiedUser.addharCard = {
-      adNumber,
-      adImage,
-    };
-    unverifiedUser.passbookImage = passbookImage; // Save passbook image
-
-    // Save the updated user
     await unverifiedUser.save();
-
     return sendToken(
       res,
       unverifiedUser,
@@ -215,75 +141,22 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     );
   }
 
-  // If no unverified user exists, proceed to create a new user
-
   let referredBy = null;
-
-  // Validate referral code
   if (refralCode) {
     const referredUser = await User.findOne({ refralCode });
     if (!referredUser)
       return next(new ErrorHandler("Invalid referral code", 400));
-
-    referredBy = referredUser._id; // Store the ID of the user who referred
+    referredBy = referredUser._id;
   } else {
-    // Check if this is the first user
     const firstUserCheck = await User.countDocuments();
-    if (firstUserCheck > 0)
-      return next(
-        new ErrorHandler("Referral code is required for registration", 400)
-      );
+    // if (firstUserCheck > 0)
+    //   return next(
+    //     new ErrorHandler("Referral code is required for registration", 400)
+    //   );
   }
 
-  // Generate a new referral code for new users
-  const newReferralCode = `PM${crypto
-    .randomBytes(3)
-    .toString("hex")
-    .toUpperCase()}`;
+  const newReferralCode = `PM${Math.floor(1000 + Math.random() * 9000)}`;
 
-  let panImage = null;
-  let adImage = null;
-  let passbookImage = null;
-
-  // Upload PAN card image to ImageKit
-  if (panImageFile && panImageFile[0]) {
-    const panUploadResponse = await imagekit.upload({
-      file: panImageFile[0].buffer, // Buffer data
-      fileName: `pan_${Date.now()}.jpg`, // Unique filename
-    });
-    panImage = {
-      public_id: panUploadResponse.fileId,
-      url: panUploadResponse.url,
-    };
-  }
-
-  if (adImageFile && adImageFile[0]) {
-    const adUploadResponse = await imagekit.upload({
-      file: adImageFile[0].buffer, // Buffer data
-      fileName: `aadhaar_${Date.now()}.jpg`, // Unique filename
-    });
-    adImage = {
-      public_id: adUploadResponse.fileId,
-      url: adUploadResponse.url,
-    };
-  }
-
-  if (passbookImageFile && passbookImageFile[0]) {
-    const passbookUploadResponse = await imagekit.upload({
-      file: passbookImageFile[0].buffer, // Buffer data
-      fileName: `passbook_${Date.now()}.jpg`, // Unique filename
-    });
-    passbookImage = {
-      public_id: passbookUploadResponse.fileId,
-      url: passbookUploadResponse.url,
-    };
-  }
-
-  const parsedBankInfo = Array.isArray(bankInfo)
-    ? bankInfo
-    : JSON.parse(bankInfo);
-
-  // Create a new user
   const user = await User.create({
     full_name,
     email,
@@ -298,20 +171,14 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     pinCode,
     refralCode: newReferralCode,
     referredBy,
-    bankInfo: parsedBankInfo, // Convert the bankInfo array from JSON string
-    panCard: {
-      panNumber,
-      panImage,
-    },
-    addharCard: {
-      adNumber,
-      adImage,
-    },
-    passbookImage, // Save passbook image
+    addline1,
+    addline2,
   });
 
   sendToken(res, user, "Registered Successfully", 200);
 });
+
+
 
 
 //get my profile
@@ -355,11 +222,14 @@ export const updateUserDetails = catchAsyncError(async (req, res, next) => {
     pinCode,
     bankInfo, // Array of objects
     panNumber, // PAN card number
-    adNumber, // Aadhaar card number
+    doctype, // Document type
+    documentNumber, // Document number
+    addLine1, // Additional address line 1
+    addLine2, // Additional address line 2
   } = req.body;
 
   // Uploaded files
-  const { panImageFile, adImageFile, passbookImageFile } = req.files || {};
+  const { panImageFile, docImageFile, passbookImageFile } = req.files || {};
 
   // Ensure the user is logged in
   const userId = req.user.id;
@@ -385,6 +255,8 @@ export const updateUserDetails = catchAsyncError(async (req, res, next) => {
   if (state) user.state = state;
   if (city) user.city = city;
   if (pinCode) user.pinCode = pinCode;
+  if (addLine1) user.addLine1 = addLine1;
+  if (addLine2) user.addLine2 = addLine2;
 
   // Update bank information if provided
   if (bankInfo) {
@@ -414,23 +286,24 @@ export const updateUserDetails = catchAsyncError(async (req, res, next) => {
     };
   }
 
-  // Update Aadhaar card details if provided
-  if (adNumber) user.addharCard.adNumber = adNumber;
-  if (adImageFile && adImageFile[0]) {
-    // Delete the old Aadhaar image from ImageKit
-    if (user.addharCard.adImage?.public_id) {
-      await imagekit.deleteFile(user.addharCard.adImage.public_id);
+  // Update document details if provided
+  if (doctype) user.document.doctype = doctype;
+  if (documentNumber) user.document.documentNumber = documentNumber;
+  if (docImageFile && docImageFile[0]) {
+    // Delete the old document image from ImageKit
+    if (user.document.docImage?.public_id) {
+      await imagekit.deleteFile(user.document.docImage.public_id);
     }
 
-    // Upload the new Aadhaar image
-    const adUploadResponse = await imagekit.upload({
-      file: adImageFile[0].buffer,
-      fileName: `aadhaar_${Date.now()}.jpg`,
+    // Upload the new document image
+    const docUploadResponse = await imagekit.upload({
+      file: docImageFile[0].buffer,
+      fileName: `document_${Date.now()}.jpg`,
     });
 
-    user.addharCard.adImage = {
-      public_id: adUploadResponse.fileId,
-      url: adUploadResponse.url,
+    user.document.docImage = {
+      public_id: docUploadResponse.fileId,
+      url: docUploadResponse.url,
     };
   }
 
@@ -463,6 +336,7 @@ export const updateUserDetails = catchAsyncError(async (req, res, next) => {
     user,
   });
 });
+
 
 //add to playlist
 export const addToPlaylist = catchAsyncError(async (req, res, next) => {

@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import validator from "validator";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
+import { type } from "os";
 
 const schema = new mongoose.Schema({
   full_name: {
@@ -41,6 +42,12 @@ const schema = new mongoose.Schema({
   pinCode: {
     type: String,
   },
+  addline1:{
+    type: String,
+  },
+  addline2:{
+    type: String,
+  },
   panCard: {
     panNumber: {
       type: String,
@@ -54,11 +61,14 @@ const schema = new mongoose.Schema({
       },
     },
   },
-  addharCard: {
-    adNumber: {
+  document: {
+    doctype:{
       type: String,
     },
-    adImage: {
+    documentNumber: {
+      type: String,
+    },
+    docImage: {
       public_id: {
         type: String,
       },
