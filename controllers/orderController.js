@@ -4,6 +4,7 @@ import { Order } from "../models/OrderModel.js";
 import { Course } from "../models/Course.js";
 import { User } from "../models/userModel.js";
 import { Earnings } from "../models/Earning.js";
+import sendEmail from "../utils/sendEmail.js";
 
 //create order
 export const createOrder = catchAsyncError(async (req, res, next) => {
@@ -23,11 +24,14 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
   // Process each course ID in the array
   for (const id of courseId) {
     const course = await Course.findById(id);
-    if (!course) return next(new ErrorHandler(`Course with ID ${id} not found`, 404));
+    if (!course)
+      return next(new ErrorHandler(`Course with ID ${id} not found`, 404));
 
     // Check if the user has already purchased this course
     if (user.purchasedCourses.includes(id)) {
-      return next(new ErrorHandler(`You have already purchased course with ID ${id}`, 400));
+      return next(
+        new ErrorHandler(`You have already purchased course with ID ${id}`, 400)
+      );
     }
 
     orderCourses.push(course._id);
@@ -94,6 +98,33 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
     await course.save();
   }
 
+  const courseTitles = orderCourses.map(async (id) => {
+    const course = await Course.findById(id);
+    return course.title;
+  });
+  
+  const resolvedCourseTitles = await Promise.all(courseTitles);
+  const courseTitleString = resolvedCourseTitles.join(", ");
+
+  const emailMessage = `Dear User ${user.full_name},
+Thank you for purchasing ${courseTitleString} from PM Gurukul! 🎉
+
+Your enrollment has been successfully processed. You can now access the course from your account dashboard.
+
+For your convenience, you can download the invoice from the "My Orders" section in your dashboard.
+
+If you have any questions or need assistance, feel free to reach out to our support team.
+
+Happy Learning!
+Best Regards,
+PM Gurukul Team`;
+
+  await sendEmail(
+    user.email,
+    `Course Purchase Confirmation ${courseTitleString}`,
+    emailMessage
+  );
+
   // Send response with order details
   res.status(200).json({
     success: true,
@@ -101,7 +132,6 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
     order,
   });
 });
-
 
 //get my order
 export const myOrders = catchAsyncError(async (req, res, next) => {
@@ -131,10 +161,8 @@ export const getAllOrders = catchAsyncError(async (req, res, next) => {
   });
 });
 
-
-
 //get single order
-export const getSingleOrder = catchAsyncError(async(req,res,next)=>{
+export const getSingleOrder = catchAsyncError(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
 
   if (!order) {
@@ -143,6 +171,6 @@ export const getSingleOrder = catchAsyncError(async(req,res,next)=>{
 
   res.status(200).json({
     success: true,
-    order
+    order,
   });
-})
+});

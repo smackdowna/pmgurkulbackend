@@ -5,6 +5,7 @@ import { sendToken } from "../utils/sendToken.js";
 import imagekit from "../config/imagekit.js";
 import crypto from "crypto";
 import { Course } from "../models/Course.js";
+import sendEmail from "../utils/sendEmail.js";
 
 //generate OTP
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000);
@@ -34,11 +35,31 @@ export const sendOTP = catchAsyncError(async (req, res, next) => {
     await user.save();
   }
 
+  const emailMessage = `Dear User,
+
+  Thank you for choosing PM GURUKKUL! 🏆
+  
+  We're thrilled to have you onboard. To ensure the security of your account and expedite your registration process, please verify your account by entering the following One-Time Password (OTP):
+  
+  OTP: ${otp}
+  
+  This OTP is exclusively for you and will expire after a limited time. We encourage you to verify your account promptly to secure your spot at the event.
+  
+  Should you have any questions or concerns, our dedicated support team is here to assist you every step of the way.
+  
+  Thank you for your trust in PM GURUKKUL. We can't wait to see you in action!
+  
+  Best regards,
+  
+  PM GURUKKUL Team 🏅`;
+
+  await sendEmail(email, "Verify your account", emailMessage);
+
   res.status(200).json({
     success: true,
     message: `OTP ${
       hardcodedOtpEnabled ? "hardcoded" : "random"
-    } sent successfully to registered mobile number`,
+    } sent successfully to registered email and mobile number`,
   });
 });
 
@@ -68,7 +89,9 @@ export const verifyOTP = catchAsyncError(async (req, res, next) => {
     });
   }
 
-  sendToken(res, user, `Welcome Back ${user.full_name}`, 200);
+  return res.status(200).json({
+    message: "Please Go To Login Page",
+  });
 });
 
 //registration
@@ -77,7 +100,8 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     full_name,
     email,
     gender,
-    language,
+    password,
+    confirm_password,
     dob,
     mobileNumber,
     occupation,
@@ -100,21 +124,28 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     );
   }
 
+  if (password != confirm_password)
+    return next(
+      new ErrorHandler("Password and Confirm Password Doesn't Match", 400)
+    );
+
   let unverifiedUser = await User.findOne({ mobileNumber, verified: false });
-  // if (!refralCode)
-  //   return next(
-  //     new ErrorHandler("Refral Code is required for registration", 400)
-  //   );
+  if (!refralCode)
+    return next(
+      new ErrorHandler("Refral Code is required for registration", 400)
+    );
 
   if (unverifiedUser) {
     if (!unverifiedUser.refralCode) {
-      unverifiedUser.refralCode = `PM${Math.floor(1000 + Math.random() * 9000)}`;
+      unverifiedUser.refralCode = `PM${Math.floor(
+        1000 + Math.random() * 9000
+      )}`;
     }
 
     unverifiedUser.full_name = full_name || unverifiedUser.full_name;
     unverifiedUser.email = email || unverifiedUser.email;
     unverifiedUser.gender = gender || unverifiedUser.gender;
-    unverifiedUser.language = language || unverifiedUser.language;
+    unverifiedUser.password = password || unverifiedUser.password;
     unverifiedUser.dob = dob || unverifiedUser.dob;
     unverifiedUser.occupation = occupation || unverifiedUser.occupation;
     unverifiedUser.country = country || unverifiedUser.country;
@@ -133,6 +164,18 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     }
 
     await unverifiedUser.save();
+
+    const emailMessage = `Dear ${unverifiedUser.full_name},
+    
+    Thank you very much for registering in PMGURUKKUL. Your referral code is ${unverifiedUser.refralCode}
+  
+  Best regards,
+  
+  PM GURUKKUL Team 🏅
+  `;
+
+    await sendEmail(email, "Welcome To PM GURUKKUL", emailMessage);
+
     return sendToken(
       res,
       unverifiedUser,
@@ -149,10 +192,10 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     referredBy = referredUser._id;
   } else {
     const firstUserCheck = await User.countDocuments();
-    // if (firstUserCheck > 0)
-    //   return next(
-    //     new ErrorHandler("Referral code is required for registration", 400)
-    //   );
+    if (firstUserCheck > 0)
+      return next(
+        new ErrorHandler("Referral code is required for registration", 400)
+      );
   }
 
   const newReferralCode = `PM${Math.floor(1000 + Math.random() * 9000)}`;
@@ -161,7 +204,7 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     full_name,
     email,
     gender,
-    language,
+    password,
     dob,
     mobileNumber,
     occupation,
@@ -178,8 +221,130 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
   sendToken(res, user, "Registered Successfully", 200);
 });
 
+//login
+export const loginUser = catchAsyncError(async (req, res, next) => {
+  const { email, password } = req.body;
 
+  // checking if user has given password and email both
 
+  if (!email || !password) {
+    return next(new ErrorHandler("Please Enter Email & Password", 400));
+  }
+
+  const user = await User.findOne({ email }).select("+password");
+
+  if (!user) {
+    return next(new ErrorHandler("Invalid email or password", 401));
+  }
+
+  const isPasswordMatched = await user.comparePassword(password);
+
+  if (!isPasswordMatched) {
+    return next(new ErrorHandler("Invalid email or password", 401));
+  }
+
+  sendToken(res, user, `Welcome Back ${user.full_name} `, 200);
+});
+
+export const forgotPassword = catchAsyncError(async (req, res, next) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return next(new ErrorHandler("Please enter email", 404));
+  }
+
+  const user = await User.findOne({ email: req.body.email });
+
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+
+  // Get ResetPassword Token
+  const resetToken = user.getResetPasswordToken();
+
+  await user.save({ validateBeforeSave: false });
+
+  // const resetPasswordUrl = `${req.protocol}://${req.get(
+  //   "host"
+  // )}/api/v1/password/reset/${resetToken}`;
+
+  const frontendurl = `http://localhost:3000/reset-password/${resetToken}`;
+
+  const message = `Dear ${user.full_name},
+
+  We hope this email finds you well. It appears that you've requested to reset your password for your PM GURUKKUL account. We're here to assist you in securely resetting your password and getting you back to enjoying our platform hassle-free.
+  
+  To reset your password, please click on the following link:
+  
+  ${frontendurl}
+  
+  This link will expire in 15 minutes for security reasons, so please make sure to use it promptly. If you didn't initiate this password reset request, please disregard this email, and your account will remain secure.
+  
+  If you encounter any issues or have any questions, feel free to reach out to our support team  for further assistance. We're here to help you every step of the way.
+  
+  Thank you for choosing PM GURUKKUL. We appreciate your continued support.
+  
+  Best regards,
+  PM GURUKKUL Team`;
+
+  try {
+    await sendEmail(user.email, "Password Reset Link for PM GURUKKUL Account", message);
+
+    res.status(200).json({
+      success: true,
+      message: `Email sent to ${user.email} successfully`,
+    });
+  } catch (error) {
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save({ validateBeforeSave: false });
+
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
+// Reset Password
+export const resetPassword = catchAsyncError(async (req, res, next) => {
+  // creating token hash
+  const resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(req.params.token)
+    .digest("hex");
+
+  const user = await User.findOne({
+    resetPasswordToken,
+    resetPasswordExpire: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return next(
+      new ErrorHandler(
+        "Reset Password Token is invalid or has been expired",
+        400
+      )
+    );
+  }
+
+  if (!req.body.password || !req.body.confirmPassword) {
+    return next(new ErrorHandler("Please Enter Password", 400));
+  }
+
+  if (req.body.password !== req.body.confirmPassword) {
+    return next(new ErrorHandler("Password does not password", 400));
+  }
+
+  user.password = req.body.password;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Password reset successfully ",
+  });
+});
 
 //get my profile
 export const getmyProfile = catchAsyncError(async (req, res, next) => {
@@ -337,7 +502,6 @@ export const updateUserDetails = catchAsyncError(async (req, res, next) => {
   });
 });
 
-
 //add to playlist
 export const addToPlaylist = catchAsyncError(async (req, res, next) => {
   const user = await User.findById(req.user._id);
@@ -451,7 +615,6 @@ export const approveKYCStatus = catchAsyncError(async (req, res, next) => {
   });
 });
 
-
 //Reject KYC
 export const rejectKYCStatus = catchAsyncError(async (req, res, next) => {
   const user = await User.findById(req.params.id);
@@ -470,7 +633,6 @@ export const rejectKYCStatus = catchAsyncError(async (req, res, next) => {
     user,
   });
 });
-
 
 //get all purchased courses
 export const getUserPurchasedCourses = catchAsyncError(

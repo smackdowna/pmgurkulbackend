@@ -3,15 +3,18 @@ import { authorizeRoles, isAuthenticated } from "../middlewares/auth.js";
 import {
   addToPlaylist,
   approveKYCStatus,
+  forgotPassword,
   getAllUser,
   getmyProfile,
   getSingleUser,
   getUserPurchasedCourses,
   getUsersWithPendingKYC,
+  loginUser,
   logout,
   registerUser,
   rejectKYCStatus,
   removeFromPlaylist,
+  resetPassword,
   sendOTP,
   updateUserDetails,
   verifyOTP,
@@ -28,6 +31,16 @@ router.route("/verify-otp").post(verifyOTP);
 
 //register
 router.route("/register").post(multipleUpload, registerUser);
+
+//login
+router.route("/login").post(loginUser);
+
+//forgot password
+router.route("/password/forgot").post(forgotPassword);
+
+//reset password
+router.route("/password/reset/:token").put(resetPassword);
+
 
 //get my profile
 router.route("/myprofile").get(isAuthenticated, getmyProfile);
