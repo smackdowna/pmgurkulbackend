@@ -70,7 +70,7 @@ const schema = new mongoose.Schema({
     documentNumber: {
       type: String,
     },
-    docImage: {
+    docFrontImage: {
       public_id: {
         type: String,
       },
@@ -78,6 +78,14 @@ const schema = new mongoose.Schema({
         type: String,
       },
     },
+    docBackImage: {
+      public_id: {
+        type: String,
+      },
+      url: {
+        type: String,
+      },
+    }
   },
   bankInfo: [
     {

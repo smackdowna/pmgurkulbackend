@@ -403,12 +403,12 @@ export const updateUserDetails = catchAsyncError(async (req, res, next) => {
     panNumber, // PAN card number
     doctype, // Document type
     documentNumber, // Document number
-    addLine1, // Additional address line 1
-    addLine2, // Additional address line 2
+    addline1, // Additional address line 1
+    addline2, // Additional address line 2
   } = req.body;
 
   // Uploaded files
-  const { panImageFile, docImageFile, passbookImageFile } = req.files || {};
+  const { panImageFile, docFrontImageFile, docBackImageFile, passbookImageFile } = req.files || {};
 
   // Ensure the user is logged in
   const userId = req.user.id;
@@ -434,14 +434,12 @@ export const updateUserDetails = catchAsyncError(async (req, res, next) => {
   if (state) user.state = state;
   if (city) user.city = city;
   if (pinCode) user.pinCode = pinCode;
-  if (addLine1) user.addLine1 = addLine1;
-  if (addLine2) user.addLine2 = addLine2;
+  if (addline1) user.addline1 = addline1;
+  if (addline2) user.addline2 = addline2;
 
   // Update bank information if provided
   if (bankInfo) {
-    const parsedBankInfo = Array.isArray(bankInfo)
-      ? bankInfo
-      : JSON.parse(bankInfo);
+    const parsedBankInfo = Array.isArray(bankInfo) ? bankInfo : JSON.parse(bankInfo);
     user.bankInfo = parsedBankInfo; // Replace with the provided data
   }
 
@@ -468,21 +466,42 @@ export const updateUserDetails = catchAsyncError(async (req, res, next) => {
   // Update document details if provided
   if (doctype) user.document.doctype = doctype;
   if (documentNumber) user.document.documentNumber = documentNumber;
-  if (docImageFile && docImageFile[0]) {
-    // Delete the old document image from ImageKit
-    if (user.document.docImage?.public_id) {
-      await imagekit.deleteFile(user.document.docImage.public_id);
+
+  // Update front document image if provided
+  if (docFrontImageFile && docFrontImageFile[0]) {
+    // Delete the old front document image from ImageKit
+    if (user.document.docFrontImage?.public_id) {
+      await imagekit.deleteFile(user.document.docFrontImage.public_id);
     }
 
-    // Upload the new document image
-    const docUploadResponse = await imagekit.upload({
-      file: docImageFile[0].buffer,
-      fileName: `document_${Date.now()}.jpg`,
+    // Upload the new front document image
+    const docFrontUploadResponse = await imagekit.upload({
+      file: docFrontImageFile[0].buffer,
+      fileName: `docFront_${Date.now()}.jpg`,
     });
 
-    user.document.docImage = {
-      public_id: docUploadResponse.fileId,
-      url: docUploadResponse.url,
+    user.document.docFrontImage = {
+      public_id: docFrontUploadResponse.fileId,
+      url: docFrontUploadResponse.url,
+    };
+  }
+
+  // Update back document image if provided
+  if (docBackImageFile && docBackImageFile[0]) {
+    // Delete the old back document image from ImageKit
+    if (user.document.docBackImage?.public_id) {
+      await imagekit.deleteFile(user.document.docBackImage.public_id);
+    }
+
+    // Upload the new back document image
+    const docBackUploadResponse = await imagekit.upload({
+      file: docBackImageFile[0].buffer,
+      fileName: `docBack_${Date.now()}.jpg`,
+    });
+
+    user.document.docBackImage = {
+      public_id: docBackUploadResponse.fileId,
+      url: docBackUploadResponse.url,
     };
   }
 
@@ -515,6 +534,7 @@ export const updateUserDetails = catchAsyncError(async (req, res, next) => {
     user,
   });
 });
+
 
 //add to playlist
 export const addToPlaylist = catchAsyncError(async (req, res, next) => {

@@ -137,7 +137,10 @@ PM Gurukul Team`;
 export const myOrders = catchAsyncError(async (req, res, next) => {
   const orders = await Order.find({ user: req.user._id }).sort({
     createdAt: -1,
-  });
+  })
+  .populate("user", "full_name mobileNumber") // Populate user with specific fields
+  .populate("course", "title description");
+  ;
 
   res.status(200).json({
     success: true,

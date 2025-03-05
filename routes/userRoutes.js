@@ -53,7 +53,9 @@ router
   .route("/me/update")
   .put(isAuthenticated, multipleUpload, updateUserDetails);
 
-//add to playlist
+router.route("/admin/user/update").put(isAuthenticated, multipleUpload, updateUserDetails);
+
+  //add to playlist
 router.route("/addtoplaylist").put(isAuthenticated, addToPlaylist);
 
 //remove from playlist
