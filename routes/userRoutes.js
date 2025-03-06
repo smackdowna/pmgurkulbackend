@@ -17,6 +17,7 @@ import {
   resetPassword,
   sendOTP,
   updateUserDetails,
+  updateUserDetailsAdmin,
   verifyOTP,
 } from "../controllers/userControllers.js";
 import { multipleUpload } from "../middlewares/multiplemulter.js";
@@ -70,7 +71,7 @@ router
 router
   .route("/user/:id")
   .get(isAuthenticated, authorizeRoles("admin"), getSingleUser)
-  .put(isAuthenticated,authorizeRoles("admin") ,multipleUpload, updateUserDetails);
+  .put(isAuthenticated,authorizeRoles("admin") ,multipleUpload, updateUserDetailsAdmin);
 
 
 //get kyc status pending--Admin
