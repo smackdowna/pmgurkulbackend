@@ -42,7 +42,6 @@ router.route("/password/forgot").post(forgotPassword);
 //reset password
 router.route("/password/reset/:token").put(resetPassword);
 
-
 //get my profile
 router.route("/myprofile").get(isAuthenticated, getmyProfile);
 
@@ -54,8 +53,7 @@ router
   .route("/me/update")
   .put(isAuthenticated, multipleUpload, updateUserDetails);
 
-
-  //add to playlist
+//add to playlist
 router.route("/addtoplaylist").put(isAuthenticated, addToPlaylist);
 
 //remove from playlist
@@ -71,8 +69,12 @@ router
 router
   .route("/user/:id")
   .get(isAuthenticated, authorizeRoles("admin"), getSingleUser)
-  .put(isAuthenticated,authorizeRoles("admin") ,multipleUpload, updateUserDetailsAdmin);
-
+  .put(
+    isAuthenticated,
+    authorizeRoles("admin"),
+    multipleUpload,
+    updateUserDetailsAdmin
+  );
 
 //get kyc status pending--Admin
 router
@@ -81,15 +83,13 @@ router
 
 //chnage kyc status--Admin
 router
-  .route("/user/:id")
-  .put(isAuthenticated, authorizeRoles("admin"), approveKYCStatus)
-  .put(isAuthenticated, authorizeRoles("admin"),updateUserDetails)
+  .route("/user/approve/:id")
+  .put(isAuthenticated, authorizeRoles("admin"), approveKYCStatus);
 
-  router
+router
   .route("/user/reject/:id")
-  .put(isAuthenticated, authorizeRoles("admin"), rejectKYCStatus);  
+  .put(isAuthenticated, authorizeRoles("admin"), rejectKYCStatus);
 
-router.route("/purchased/course").get(isAuthenticated,getUserPurchasedCourses);
-
+router.route("/purchased/course").get(isAuthenticated, getUserPurchasedCourses);
 
 export default router;
