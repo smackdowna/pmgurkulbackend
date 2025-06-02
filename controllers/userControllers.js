@@ -49,7 +49,7 @@ export const sendOTP = catchAsyncError(async (req, res, next) => {
 
   const emailMessage = `Dear User,
 
-  Thank you for choosing PM GURUKKUL! 🏆
+  Thank you for choosing PMGurukkul! 🏆
   
   We're thrilled to have you onboard. To ensure the security of your account and expedite your registration process, please verify your account by entering the following One-Time Password (OTP):
   
@@ -59,11 +59,11 @@ export const sendOTP = catchAsyncError(async (req, res, next) => {
   
   Should you have any questions or concerns, our dedicated support team is here to assist you every step of the way.
   
-  Thank you for your trust in PM GURUKKUL. We can't wait to see you in action!
+  Thank you for your trust in PMGurukkul. We can't wait to see you in action!
   
   Best regards,
   
-  PM GURUKKUL Team 🏅`;
+  PMGurukkul Team 🏅`;
 
   await sendEmail(email, "Verify your account", emailMessage);
 
@@ -196,10 +196,10 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
   
   Best regards,
   
-  PM GURUKKUL Team 🏅
+  PMGurukkul Team 🏅
   `;
 
-    await sendEmail(email, "Welcome To PM GURUKKUL", emailMessage);
+    await sendEmail(email, "Welcome To PMGurukkul", emailMessage);
 
     return sendToken(
       res,
@@ -300,7 +300,7 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
 
   const message = `Dear ${user.full_name},
 
-  We hope this email finds you well. It appears that you've requested to reset your password for your PM GURUKKUL account. We're here to assist you in securely resetting your password and getting you back to enjoying our platform hassle-free.
+  We hope this email finds you well. It appears that you've requested to reset your password for your PMGurukkul account. We're here to assist you in securely resetting your password and getting you back to enjoying our platform hassle-free.
   
   To reset your password, please click on the following link:
   
@@ -310,13 +310,13 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
   
   If you encounter any issues or have any questions, feel free to reach out to our support team  for further assistance. We're here to help you every step of the way.
   
-  Thank you for choosing PM GURUKKUL. We appreciate your continued support.
+  Thank you for choosing PMGurukkul. We appreciate your continued support.
   
   Best regards,
-  PM GURUKKUL Team`;
+  PMGurukkul Team`;
 
   try {
-    await sendEmail(user.email, "Password Reset Link for PM GURUKKUL Account", message);
+    await sendEmail(user.email, "Password Reset Link for PMGurukkul Account", message);
 
     res.status(200).json({
       success: true,
