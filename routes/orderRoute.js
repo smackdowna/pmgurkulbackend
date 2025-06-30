@@ -14,14 +14,14 @@ import {
 const router = express.Router();
 
 //create order
-router.route("/createorder").post(isAuthenticated, createOrder);
+router.route("/create-order").post(isAuthenticated, createOrder);
 
 //get my orders
-router.route("/myorder").get(isAuthenticated, myOrders);
+router.route("/my-orders").get(isAuthenticated, myOrders);
 
 //get all order-Admin
 router
-  .route("/allorders")
+  .route("/all-orders")
   .get(isAuthenticated, authorizeRoles("admin"), getAllOrders);
 
 //get single order
