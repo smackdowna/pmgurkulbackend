@@ -65,20 +65,20 @@ export const sendOTP = catchAsyncError(async (req, res, next) => {
   
   PMGurukkul Team 🏅`;
 
-  await sendEmail(email, "Verify your account", emailMessage);
+  // await sendEmail(email, "Verify your account", emailMessage);
 
   // Send OTP via SMS using 2Factor API
-  try {
-    const response = await axios.get(
-      `https://2factor.in/API/V1/b41581a6-f8df-11ef-8b17-0200cd936042/SMS/${mobileNumber}/${otp}/`
-    );
+  // try {
+  //   const response = await axios.get(
+  //     `https://2factor.in/API/V1/b41581a6-f8df-11ef-8b17-0200cd936042/SMS/${mobileNumber}/${otp}/`
+  //   );
 
-    if (response.data.Status !== "Success") {
-      return next(new ErrorHandler("Failed to send OTP via SMS", 500));
-    }
-  } catch (error) {
-    return next(new ErrorHandler("Error sending OTP via SMS", 500));
-  }
+  //   if (response.data.Status !== "Success") {
+  //     return next(new ErrorHandler("Failed to send OTP via SMS", 500));
+  //   }
+  // } catch (error) {
+  //   return next(new ErrorHandler("Error sending OTP via SMS", 500));
+  // }
 
   res.status(200).json({
     success: true,

@@ -31,6 +31,6 @@ router.route("/order/:id").get(isAuthenticated, getSingleOrder);
 router.route("/checkout").post(isAuthenticated, checkout);
 
 //payment verification
-router.route("/paymentverification").post(isAuthenticated, paymentVerification);
+router.route("/paymentVerification").post(isAuthenticated, paymentVerification);
 
 export default router;
