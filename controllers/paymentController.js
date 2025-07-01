@@ -32,19 +32,20 @@ export const checkout = catchAsyncError(async (req, res, next) => {
 
 //payment verification
 export const paymentVerification = async (req, res) => {
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
-    req.body;
+  const { razorpay_payment_id } = req.body;
+  // const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+  //   req.body;
 
-  const body = razorpay_order_id + "|" + razorpay_payment_id;
+  // const body = razorpay_order_id + "|" + razorpay_payment_id;
 
-  const expectedSignature = crypto
-    .createHmac("sha256", process.env.RAZORPAY_API_SECRET)
-    .update(body.toString())
-    .digest("hex");
+  // const expectedSignature = crypto
+  //   .createHmac("sha256", process.env.RAZORPAY_API_SECRET)
+  //   .update(body.toString())
+  //   .digest("hex");
 
-  const isAuthentic = expectedSignature === razorpay_signature;
+  // const isAuthentic = expectedSignature === razorpay_signature;
 
-  if (isAuthentic) {
+  if (razorpay_payment_id) {
     // Database comes here
 
     // await Payment.create({
@@ -54,7 +55,7 @@ export const paymentVerification = async (req, res) => {
     // });
 
     res.redirect(
-      `http://localhost:3000/paymentsuccess?reference=${razorpay_payment_id}`
+      `http://localhost:5173/payment-successful/${razorpay_payment_id}`
     );
   } else {
     res.status(400).json({
