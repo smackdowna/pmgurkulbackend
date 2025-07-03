@@ -42,7 +42,7 @@ app.use("/api/v1",earning);
 
 export default app;
 
-app.get("/", (req, res) => res.send(`<h1>Welcome To PM Gurukul</h1>`));
+app.get("/", (req, res) => res.send(`<h1>Welcome To PMGURUKKUL</h1>`));
 
 app.get("/api/v1/getKey", (req, res) =>
   res.status(200).json({ key: process.env.RAZORPAY_API_KEY })

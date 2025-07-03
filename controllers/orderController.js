@@ -107,7 +107,7 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
   const courseTitleString = resolvedCourseTitles.join(", ");
 
   const emailMessage = `Dear User ${user.full_name},
-Thank you for purchasing ${courseTitleString} from PM Gurukul! 🎉
+Thank you for purchasing ${courseTitleString} from PMGURUKKUL! 🎉
 
 Your enrollment has been successfully processed. You can now access the course from your account dashboard.
 
@@ -117,7 +117,7 @@ If you have any questions or need assistance, feel free to reach out to our supp
 
 Happy Learning!
 Best Regards,
-PM Gurukul Team`;
+PMGURUKKUL Team`;
 
   await sendEmail(
     user.email,
