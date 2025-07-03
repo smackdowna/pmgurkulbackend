@@ -49,7 +49,7 @@ export const sendOTP = catchAsyncError(async (req, res, next) => {
 
   const emailMessage = `Dear User,
 
-  Thank you for choosing PMGurukkul! 🏆
+  Thank you for choosing PMGURUKKUL! 🏆
   
   We're thrilled to have you onboard. To ensure the security of your account and expedite your registration process, please verify your account by entering the following One-Time Password (OTP):
   
@@ -59,26 +59,26 @@ export const sendOTP = catchAsyncError(async (req, res, next) => {
   
   Should you have any questions or concerns, our dedicated support team is here to assist you every step of the way.
   
-  Thank you for your trust in PMGurukkul. We can't wait to see you in action!
+  Thank you for your trust in PMGURUKKUL. We can't wait to see you in action!
   
   Best regards,
   
-  PMGurukkul Team 🏅`;
+  PMGURUKKUL Team 🏅`;
 
-  // await sendEmail(email, "Verify your account", emailMessage);
+  await sendEmail(email, "Verify your account", emailMessage);
 
   // Send OTP via SMS using 2Factor API
-  // try {
-  //   const response = await axios.get(
-  //     `https://2factor.in/API/V1/b41581a6-f8df-11ef-8b17-0200cd936042/SMS/${mobileNumber}/${otp}/`
-  //   );
+  try {
+    const response = await axios.get(
+      `https://2factor.in/API/V1/b41581a6-f8df-11ef-8b17-0200cd936042/SMS/${mobileNumber}/${otp}/`
+    );
 
-  //   if (response.data.Status !== "Success") {
-  //     return next(new ErrorHandler("Failed to send OTP via SMS", 500));
-  //   }
-  // } catch (error) {
-  //   return next(new ErrorHandler("Error sending OTP via SMS", 500));
-  // }
+    if (response.data.Status !== "Success") {
+      return next(new ErrorHandler("Failed to send OTP via SMS", 500));
+    }
+  } catch (error) {
+    return next(new ErrorHandler("Error sending OTP via SMS", 500));
+  }
 
   res.status(200).json({
     success: true,
@@ -196,10 +196,10 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
   
   Best regards,
   
-  PMGurukkul Team 🏅
+  PMGURUKKUL Team 🏅
   `;
 
-    await sendEmail(email, "Welcome To PMGurukkul", emailMessage);
+    await sendEmail(email, "Welcome To PMGURUKKUL", emailMessage);
 
     return sendToken(
       res,
@@ -300,7 +300,7 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
 
   const message = `Dear ${user.full_name},
 
-  We hope this email finds you well. It appears that you've requested to reset your password for your PMGurukkul account. We're here to assist you in securely resetting your password and getting you back to enjoying our platform hassle-free.
+  We hope this email finds you well. It appears that you've requested to reset your password for your PMGURUKKUL account. We're here to assist you in securely resetting your password and getting you back to enjoying our platform hassle-free.
   
   To reset your password, please click on the following link:
   
@@ -310,13 +310,13 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
   
   If you encounter any issues or have any questions, feel free to reach out to our support team  for further assistance. We're here to help you every step of the way.
   
-  Thank you for choosing PMGurukkul. We appreciate your continued support.
+  Thank you for choosing PMGURUKKUL. We appreciate your continued support.
   
   Best regards,
-  PMGurukkul Team`;
+  PMGURUKKUL Team`;
 
   try {
-    await sendEmail(user.email, "Password Reset Link for PMGurukkul Account", message);
+    await sendEmail(user.email, "Password Reset Link for PMGURUKKUL Account", message);
 
     res.status(200).json({
       success: true,
