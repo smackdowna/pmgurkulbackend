@@ -74,28 +74,30 @@ export const getWeeklyEarnings = async (req, res) => {
     const today = new Date();
     const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, 2 = Tuesday, ..., 6 = Saturday
 
+    // Uncomment if needed:
     // if (currentDay !== 2) {
-    //   return res.status(403).json({
-    //     message: "Only available on Tuesdays.",
-    //   });
+    //   return res.status(403).json({ message: "Only available on Tuesdays." });
     // }
 
+    // Optional time filter:
     // const { start, end } = getLastTuesdayToNowRange();
 
     const earnings = await Earnings.aggregate([
       {
         $match: {
-          // createdAt: { $lte: end },
+          // createdAt: { $lte: end }, // add time filter if needed
           payout_status: { $ne: "Approved" },
         },
       },
       {
         $group: {
-          _id: "$user",
+          _id: "$user", // group by user
           totalAmountCredited: { $sum: "$amountCredited" },
           totalOrders: { $sum: 1 },
+          payoutStatuses: { $addToSet: "$payout_status" },
           entries: {
             $push: {
+              earningId: "$_id", // 👈 Push earningId
               order: "$order",
               discountedPrice: "$discountedPrice",
               amountCredited: "$amountCredited",
@@ -110,7 +112,7 @@ export const getWeeklyEarnings = async (req, res) => {
       {
         $lookup: {
           from: "users",
-          localField: "_id",
+          localField: "_id", // _id is userId
           foreignField: "_id",
           as: "userInfo",
         },
@@ -120,6 +122,7 @@ export const getWeeklyEarnings = async (req, res) => {
       },
       {
         $project: {
+          _id: { $arrayElemAt: ["$entries.earningId", 0] }, // 👈 set _id as first earningId
           userId: "$_id",
           name: "$userInfo.full_name",
           email: "$userInfo.email",
@@ -127,43 +130,58 @@ export const getWeeklyEarnings = async (req, res) => {
           totalAmountCredited: 1,
           totalOrders: 1,
           entries: 1,
+          status: {
+            $cond: [
+              {
+                $and: [
+                  { $eq: [{ $size: "$payoutStatuses" }, 1] },
+                  {
+                    $eq: [{ $arrayElemAt: ["$payoutStatuses", 0] }, "Approved"],
+                  },
+                ],
+              },
+              "Approved",
+              "Pending",
+            ],
+          },
         },
       },
     ]);
 
     res.status(200).json({ data: earnings });
   } catch (error) {
-    console.log(error);
+    console.log("Error in getWeeklyEarnings:", error);
     res.status(500).json({ message: "Server Error", error });
   }
 };
 
-export const approvePayoutByEarningId = async (req, res) => {
+
+export const approvePayoutByUserId = async (req, res) => {
   try {
-    const { earningId } = req.params;
+    const { userId } = req.params;
 
-    // Step 1: Find the earning document by ID
-    const earning = await Earnings.findById(earningId);
+    const pendingEarnings = await Earnings.find({ user: userId, payout_status: { $ne: "Approved" } });
+console.log("Pending earnings count:", pendingEarnings);
 
-    if (!earning) {
-      return res.status(404).json({ message: "Earning not found" });
-    }
-    console.log(earning);
 
-    const userId = earning.user;
-
-    // Step 2: Update all earnings of that user where payout_status ≠ "Approved"
     const result = await Earnings.updateMany(
       { user: userId, payout_status: { $ne: "Approved" } },
       { $set: { payout_status: "Approved" } }
     );
+
+    console.log(result);
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ message: "No earnings found to approve for this user" });
+    }
 
     res.status(200).json({
       message: `Payout approved for user: ${userId}`,
       modifiedCount: result.modifiedCount,
     });
   } catch (error) {
-    console.error("Error in approvePayoutByEarningId:", error);
+    console.error("Error in approvePayoutByUserId:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };
+

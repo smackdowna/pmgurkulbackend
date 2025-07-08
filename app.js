@@ -23,7 +23,7 @@ app.use(
   cors({
     origin: ["*", "http://localhost:3000", "http://localhost:5173","https://pm-gurukul.vercel.app"],
     credentials: true,
-    methods: ["GET", "POST", "DELETE", "PUT"],
+    methods: ["GET", "POST", "DELETE", "PUT", "PATCH"],
   })
 );
 
