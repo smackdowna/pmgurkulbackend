@@ -1,6 +1,6 @@
 import express from "express";
 import { isAuthenticated, authorizeRoles } from "../middlewares/auth.js";
-import { allEarnings, allEarningsApproved, allEarningsPending, approvePayout } from "../controllers/earningsController.js";
+import { allEarnings, allEarningsApproved, allEarningsPending, approvePayout, approvePayoutByEarningId, getWeeklyEarnings } from "../controllers/earningsController.js";
 
 
 const router = express.Router();
@@ -8,6 +8,10 @@ const router = express.Router();
 
 //get all pending payout
 router.route("/pendingpayout").get(isAuthenticated,authorizeRoles("admin"),allEarningsPending);
+// get weekly earnings
+router.route("/weekly-earnings").get(isAuthenticated,authorizeRoles("admin"), getWeeklyEarnings);
+// Approve weekly payout
+router.patch("/approve-payout/:earningId", approvePayoutByEarningId);
 
 //approved payout
 router.route("/approvedpayout").get(isAuthenticated,authorizeRoles("admin"),allEarningsApproved)
