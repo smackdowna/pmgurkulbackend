@@ -419,6 +419,8 @@ export const updateUserDetails = catchAsyncError(async (req, res, next) => {
     documentNumber, // Document number
     addline1, // Additional address line 1
     addline2, // Additional address line 2
+    gstNumber,
+    gstCompanyName,
   } = req.body;
 
   // Uploaded files
@@ -450,6 +452,8 @@ export const updateUserDetails = catchAsyncError(async (req, res, next) => {
   if (pinCode) user.pinCode = pinCode;
   if (addline1) user.addline1 = addline1;
   if (addline2) user.addline2 = addline2;
+  if (gstNumber) user.gstNumber = gstNumber;
+  if (gstCompanyName) user.gstCompanyName = gstCompanyName;
 
   // Update bank information if provided
   if (bankInfo) {
