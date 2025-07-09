@@ -150,6 +150,12 @@ const schema = new mongoose.Schema({
     default: "Pending",
     enum: ["Pending", "Approved","Rejected"],
   },
+  gstNumber: {
+    type: String,
+  },
+  gstCompanyName: {
+    type: String,
+  },
   otp: {
     type: String,
   },

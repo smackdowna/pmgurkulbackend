@@ -135,8 +135,8 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     city,
     pinCode,
     refralCode,
-    addline1, // New field
-    addline2, // New field
+    addline1,
+    addline2,
   } = req.body;
 
   if (!mobileNumber)
