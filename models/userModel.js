@@ -6,6 +6,9 @@ import crypto from "crypto";
 import { type } from "os";
 
 const schema = new mongoose.Schema({
+  // userId: {
+  //   type: String,
+  // },
   full_name: {
     type: String,
   },

@@ -6,7 +6,7 @@ import imagekit from "../config/imagekit.js";
 import crypto from "crypto";
 import { Course } from "../models/Course.js";
 import sendEmail from "../utils/sendEmail.js";
-import axios from "axios"
+import axios from "axios";
 
 //generate OTP
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000);
@@ -18,21 +18,24 @@ export const sendOTP = catchAsyncError(async (req, res, next) => {
   if (!mobileNumber || !email)
     return next(new ErrorHandler("Please enter all fields", 400));
 
-  let user =  await User.findOne({ email: email });
+  let user = await User.findOne({ email: email });
 
   if (user)
-    return next(new ErrorHandler("User already registered with same email", 400));
+    return next(
+      new ErrorHandler("User already registered with same email", 400)
+    );
 
   user = await User.findOne({ mobileNumber });
 
   if (user)
-    return next(new ErrorHandler("User already registered with same mobile number", 400));
-
+    return next(
+      new ErrorHandler("User already registered with same mobile number", 400)
+    );
 
   const hardcodedOtpEnabled = process.env.HARDCODED_OTP === "true";
   const otp = hardcodedOtpEnabled ? "000000" : generateOTP();
 
-   user = await User.findOne({ mobileNumber });
+  user = await User.findOne({ mobileNumber });
 
   if (!user) {
     user = await User.create({
@@ -137,7 +140,12 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     refralCode,
     addline1,
     addline2,
+    gstNumber,
+    gstCompanyName,
   } = req.body;
+ 
+ 
+
 
   if (!mobileNumber)
     return next(new ErrorHandler("Mobile number is required", 400));
@@ -157,7 +165,7 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
   let unverifiedUser = await User.findOne({ mobileNumber, verified: false });
   if (!refralCode)
     return next(
-      new ErrorHandler("Refral Code is required for registration", 400)
+      new ErrorHandler("Referral Code is required for registration", 400)
     );
 
   if (unverifiedUser) {
@@ -180,6 +188,8 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     unverifiedUser.verified = true;
     unverifiedUser.addline1 = addline1 || unverifiedUser.addline1;
     unverifiedUser.addline2 = addline2 || unverifiedUser.addline2;
+    unverifiedUser.gstNumber = gstNumber || unverifiedUser.gstNumber;
+    unverifiedUser.gstCompanyName = gstCompanyName || unverifiedUser.gstCompanyName;
 
     if (refralCode) {
       const referredUser = await User.findOne({ refralCode });
@@ -225,6 +235,11 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
 
   const newReferralCode = `PM${Math.floor(1000 + Math.random() * 9000)}`;
 
+  //  const currentYear = new Date().getFullYear();
+  // const randomDigits = Math.floor(100 + Math.random() * 900); 
+  // const userId = `PM-${currentYear}${randomDigits}`;
+  //  console.log(userId);
+   
   const user = await User.create({
     full_name,
     email,
@@ -241,7 +256,12 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     referredBy,
     addline1,
     addline2,
+    gstNumber,
+    gstCompanyName,
+    // userId,
   });
+
+  console.log(user);
 
   sendToken(res, user, "Registered Successfully", 200);
 });
@@ -250,7 +270,6 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
 export const loginUser = catchAsyncError(async (req, res, next) => {
   const { email, password } = req.body;
 
-  
   // checking if user has given password and email both
 
   if (!email || !password) {
@@ -259,13 +278,11 @@ export const loginUser = catchAsyncError(async (req, res, next) => {
 
   const user = await User.findOne({ email }).select("+password");
 
-
   if (!user) {
     return next(new ErrorHandler("Invalid email or password", 401));
   }
 
   const isPasswordMatched = await user.comparePassword(password);
-
 
   if (!isPasswordMatched) {
     return next(new ErrorHandler("Invalid email or password", 401));
@@ -316,7 +333,11 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
   PMGURUKKUL Team`;
 
   try {
-    await sendEmail(user.email, "Password Reset Link for PMGURUKKUL Account", message);
+    await sendEmail(
+      user.email,
+      "Password Reset Link for PMGURUKKUL Account",
+      message
+    );
 
     res.status(200).json({
       success: true,
@@ -424,7 +445,12 @@ export const updateUserDetails = catchAsyncError(async (req, res, next) => {
   } = req.body;
 
   // Uploaded files
-  const { panImageFile, docFrontImageFile, docBackImageFile, passbookImageFile } = req.files || {};
+  const {
+    panImageFile,
+    docFrontImageFile,
+    docBackImageFile,
+    passbookImageFile,
+  } = req.files || {};
 
   // Ensure the user is logged in
   const userId = req.user.id;
@@ -457,7 +483,9 @@ export const updateUserDetails = catchAsyncError(async (req, res, next) => {
 
   // Update bank information if provided
   if (bankInfo) {
-    const parsedBankInfo = Array.isArray(bankInfo) ? bankInfo : JSON.parse(bankInfo);
+    const parsedBankInfo = Array.isArray(bankInfo)
+      ? bankInfo
+      : JSON.parse(bankInfo);
     user.bankInfo = parsedBankInfo; // Replace with the provided data
   }
 
@@ -554,155 +582,163 @@ export const updateUserDetails = catchAsyncError(async (req, res, next) => {
 });
 
 //admin update user
-export const updateUserDetailsAdmin = catchAsyncError(async (req, res, next) => {
-  const {
-    full_name,
-    email,
-    gender,
-    language,
-    dob,
-    mobileNumber,
-    occupation,
-    country,
-    state,
-    city,
-    pinCode,
-    bankInfo, // Array of objects
-    panNumber, // PAN card number
-    doctype, // Document type
-    documentNumber, // Document number
-    addline1, // Additional address line 1
-    addline2, // Additional address line 2
-  } = req.body;
+export const updateUserDetailsAdmin = catchAsyncError(
+  async (req, res, next) => {
+    const {
+      full_name,
+      email,
+      gender,
+      language,
+      dob,
+      mobileNumber,
+      occupation,
+      country,
+      state,
+      city,
+      pinCode,
+      bankInfo, // Array of objects
+      panNumber, // PAN card number
+      doctype, // Document type
+      documentNumber, // Document number
+      addline1, // Additional address line 1
+      addline2, // Additional address line 2
+    } = req.body;
 
-  // Uploaded files
-  const { panImageFile, docFrontImageFile, docBackImageFile, passbookImageFile } = req.files || {};
+    // Uploaded files
+    const {
+      panImageFile,
+      docFrontImageFile,
+      docBackImageFile,
+      passbookImageFile,
+    } = req.files || {};
 
-  // Ensure the user is logged in
-  const userId = req.params.id;
+    // Ensure the user is logged in
+    const userId = req.params.id;
 
-  // Fetch the user from the database
-  let user = await User.findById(userId);
-  if (!user) {
-    return res.status(404).json({
-      success: false,
-      message: "User not found",
-    });
-  }
-
-  // Update basic details if provided
-  if (full_name) user.full_name = full_name;
-  if (email) user.email = email;
-  if (gender) user.gender = gender;
-  if (language) user.language = language;
-  if (dob) user.dob = dob;
-  if (mobileNumber) user.mobileNumber = mobileNumber;
-  if (occupation) user.occupation = occupation;
-  if (country) user.country = country;
-  if (state) user.state = state;
-  if (city) user.city = city;
-  if (pinCode) user.pinCode = pinCode;
-  if (addline1) user.addline1 = addline1;
-  if (addline2) user.addline2 = addline2;
-
-  // Update bank information if provided
-  if (bankInfo) {
-    const parsedBankInfo = Array.isArray(bankInfo) ? bankInfo : JSON.parse(bankInfo);
-    user.bankInfo = parsedBankInfo; // Replace with the provided data
-  }
-
-  // Update PAN card details if provided
-  if (panNumber) user.panCard.panNumber = panNumber;
-  if (panImageFile && panImageFile[0]) {
-    // Delete the old PAN image from ImageKit
-    if (user.panCard.panImage?.public_id) {
-      await imagekit.deleteFile(user.panCard.panImage.public_id);
+    // Fetch the user from the database
+    let user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
     }
 
-    // Upload the new PAN image
-    const panUploadResponse = await imagekit.upload({
-      file: panImageFile[0].buffer,
-      fileName: `pan_${Date.now()}.jpg`,
-    });
+    // Update basic details if provided
+    if (full_name) user.full_name = full_name;
+    if (email) user.email = email;
+    if (gender) user.gender = gender;
+    if (language) user.language = language;
+    if (dob) user.dob = dob;
+    if (mobileNumber) user.mobileNumber = mobileNumber;
+    if (occupation) user.occupation = occupation;
+    if (country) user.country = country;
+    if (state) user.state = state;
+    if (city) user.city = city;
+    if (pinCode) user.pinCode = pinCode;
+    if (addline1) user.addline1 = addline1;
+    if (addline2) user.addline2 = addline2;
 
-    user.panCard.panImage = {
-      public_id: panUploadResponse.fileId,
-      url: panUploadResponse.url,
-    };
-  }
-
-  // Update document details if provided
-  if (doctype) user.document.doctype = doctype;
-  if (documentNumber) user.document.documentNumber = documentNumber;
-
-  // Update front document image if provided
-  if (docFrontImageFile && docFrontImageFile[0]) {
-    // Delete the old front document image from ImageKit
-    if (user.document.docFrontImage?.public_id) {
-      await imagekit.deleteFile(user.document.docFrontImage.public_id);
+    // Update bank information if provided
+    if (bankInfo) {
+      const parsedBankInfo = Array.isArray(bankInfo)
+        ? bankInfo
+        : JSON.parse(bankInfo);
+      user.bankInfo = parsedBankInfo; // Replace with the provided data
     }
 
-    // Upload the new front document image
-    const docFrontUploadResponse = await imagekit.upload({
-      file: docFrontImageFile[0].buffer,
-      fileName: `docFront_${Date.now()}.jpg`,
-    });
+    // Update PAN card details if provided
+    if (panNumber) user.panCard.panNumber = panNumber;
+    if (panImageFile && panImageFile[0]) {
+      // Delete the old PAN image from ImageKit
+      if (user.panCard.panImage?.public_id) {
+        await imagekit.deleteFile(user.panCard.panImage.public_id);
+      }
 
-    user.document.docFrontImage = {
-      public_id: docFrontUploadResponse.fileId,
-      url: docFrontUploadResponse.url,
-    };
-  }
+      // Upload the new PAN image
+      const panUploadResponse = await imagekit.upload({
+        file: panImageFile[0].buffer,
+        fileName: `pan_${Date.now()}.jpg`,
+      });
 
-  // Update back document image if provided
-  if (docBackImageFile && docBackImageFile[0]) {
-    // Delete the old back document image from ImageKit
-    if (user.document.docBackImage?.public_id) {
-      await imagekit.deleteFile(user.document.docBackImage.public_id);
+      user.panCard.panImage = {
+        public_id: panUploadResponse.fileId,
+        url: panUploadResponse.url,
+      };
     }
 
-    // Upload the new back document image
-    const docBackUploadResponse = await imagekit.upload({
-      file: docBackImageFile[0].buffer,
-      fileName: `docBack_${Date.now()}.jpg`,
-    });
+    // Update document details if provided
+    if (doctype) user.document.doctype = doctype;
+    if (documentNumber) user.document.documentNumber = documentNumber;
 
-    user.document.docBackImage = {
-      public_id: docBackUploadResponse.fileId,
-      url: docBackUploadResponse.url,
-    };
-  }
+    // Update front document image if provided
+    if (docFrontImageFile && docFrontImageFile[0]) {
+      // Delete the old front document image from ImageKit
+      if (user.document.docFrontImage?.public_id) {
+        await imagekit.deleteFile(user.document.docFrontImage.public_id);
+      }
 
-  // Update passbook image if provided
-  if (passbookImageFile && passbookImageFile[0]) {
-    // Delete the old passbook image from ImageKit
-    if (user.passbookImage?.public_id) {
-      await imagekit.deleteFile(user.passbookImage.public_id);
+      // Upload the new front document image
+      const docFrontUploadResponse = await imagekit.upload({
+        file: docFrontImageFile[0].buffer,
+        fileName: `docFront_${Date.now()}.jpg`,
+      });
+
+      user.document.docFrontImage = {
+        public_id: docFrontUploadResponse.fileId,
+        url: docFrontUploadResponse.url,
+      };
     }
 
-    // Upload the new passbook image
-    const passbookUploadResponse = await imagekit.upload({
-      file: passbookImageFile[0].buffer,
-      fileName: `passbook_${Date.now()}.jpg`,
+    // Update back document image if provided
+    if (docBackImageFile && docBackImageFile[0]) {
+      // Delete the old back document image from ImageKit
+      if (user.document.docBackImage?.public_id) {
+        await imagekit.deleteFile(user.document.docBackImage.public_id);
+      }
+
+      // Upload the new back document image
+      const docBackUploadResponse = await imagekit.upload({
+        file: docBackImageFile[0].buffer,
+        fileName: `docBack_${Date.now()}.jpg`,
+      });
+
+      user.document.docBackImage = {
+        public_id: docBackUploadResponse.fileId,
+        url: docBackUploadResponse.url,
+      };
+    }
+
+    // Update passbook image if provided
+    if (passbookImageFile && passbookImageFile[0]) {
+      // Delete the old passbook image from ImageKit
+      if (user.passbookImage?.public_id) {
+        await imagekit.deleteFile(user.passbookImage.public_id);
+      }
+
+      // Upload the new passbook image
+      const passbookUploadResponse = await imagekit.upload({
+        file: passbookImageFile[0].buffer,
+        fileName: `passbook_${Date.now()}.jpg`,
+      });
+
+      user.passbookImage = {
+        public_id: passbookUploadResponse.fileId,
+        url: passbookUploadResponse.url,
+      };
+    }
+
+    // Save the updated user
+    await user.save();
+
+    // Respond with success
+    res.status(200).json({
+      success: true,
+      message: "User details updated successfully",
+      user,
     });
-
-    user.passbookImage = {
-      public_id: passbookUploadResponse.fileId,
-      url: passbookUploadResponse.url,
-    };
   }
-
-  // Save the updated user
-  await user.save();
-
-  // Respond with success
-  res.status(200).json({
-    success: true,
-    message: "User details updated successfully",
-    user,
-  });
-});
-
+);
 
 //add to playlist
 export const addToPlaylist = catchAsyncError(async (req, res, next) => {
