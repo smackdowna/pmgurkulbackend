@@ -40,6 +40,9 @@ const schema = new mongoose.Schema({
   razorpay_payment_id: {
     type: String,
   },
+  paymentId: {
+    type: String,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

@@ -5,10 +5,25 @@ import { Course } from "../models/Course.js";
 import { User } from "../models/userModel.js";
 import { Earnings } from "../models/Earning.js";
 import sendEmail from "../utils/sendEmail.js";
+import { Counter } from "../models/CounterModel.js";
 
 //create order
 export const createOrder = catchAsyncError(async (req, res, next) => {
   const { courseId } = req.body;
+
+// Generate a new paymentId
+let paymentId = "001"; // default for first order
+const counter = await Counter.findOneAndUpdate(
+  { name: "payment" },
+  { $inc: { value: 1 } },
+  { new: true, upsert: true }
+);
+
+// Pad the counter value with leading zeros (3 digits)
+if (counter?.value) {
+  paymentId = counter.value.toString().padStart(3, "0"); // This ensures "001", "002", etc.
+}
+
 
   // Check if courseId is provided and is an array
   if (!courseId || !Array.isArray(courseId) || courseId.length === 0) {
@@ -69,6 +84,7 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
     commission,
     tds,
     amountCredited, // Referrer's net amount after TDS
+    paymentId,
   });
 
   // Update the user (purchaser) details after course purchase
@@ -89,6 +105,7 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
     commission,
     tds,
     amountCredited,
+    paymentId,
   });
 
   // Increment totalEnrolled for each course
