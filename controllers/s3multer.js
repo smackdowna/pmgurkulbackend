@@ -2,9 +2,10 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-const tempDir = "temp";
+// ✅ Use /tmp for temporary storage in serverless environments
+const tempDir = "/tmp/temp";
 if (!fs.existsSync(tempDir)) {
-  fs.mkdirSync(tempDir);
+  fs.mkdirSync(tempDir, { recursive: true }); // Add recursive to create full path
 }
 
 const storage = multer.diskStorage({
@@ -20,7 +21,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   limits: {
-    fileSize: 1024 * 1024 * 7000, // 500MB max file size
+    fileSize: 1024 * 1024 * 7000, // 7GB (check your actual limits)
   },
   fileFilter(req, file, cb) {
     if (
@@ -35,5 +36,4 @@ const upload = multer({
   },
 });
 
-// 👉 This is what you'll import and use in the route
 export const singleUploadS3 = upload.single("file");
