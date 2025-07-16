@@ -4,6 +4,12 @@ import { Course } from "../models/Course.js";
 import cloudinary from "cloudinary";
 import getDataUri from "../utils/dataUri.js";
 
+import { v4 as uuidv4 } from "uuid";
+import path from "path";
+import fs from "fs";
+import util from "util";
+import s3 from "../utils/s3.js";
+
 //create course
 export const createCourse = catchAsyncError(async (req, res, next) => {
   const {
@@ -101,43 +107,95 @@ export const getCourseLectures = catchAsyncError(async (req, res, next) => {
 });
 
 //delete lectures
+// export const addLectures = catchAsyncError(async (req, res, next) => {
+//   const { id } = req.params;
+//   const { title, description, videoDuration } = req.body;
+
+//   const file = req.file;
+
+//   if (!title || !description || !videoDuration || !file)
+//     return next(new ErrorHandler("Please Enter all details", 404));
+
+//   const course = await Course.findById(id);
+
+//   if (!course) return next(new ErrorHandler("Course Not Found", 404));
+
+//   const fileUri = getDataUri(file);
+//   const mycloud = await cloudinary.v2.uploader.upload(fileUri.content, {
+//     resource_type: "video",
+//   });
+
+//   course.lectures.push({
+//     title,
+//     description,
+//     videoDuration,
+//     video: {
+//       public_id: mycloud.public_id,
+//       url: mycloud.secure_url,
+//     },
+//   });
+
+//   course.numOfVideos = course.lectures.length;
+
+//   await course.save();
+
+//   res.status(200).json({
+//     success: true,
+//     message: "Lectures added successfully",
+//   });
+// });
+
+
+
+const unlinkFile = util.promisify(fs.unlink);
+
 export const addLectures = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   const { title, description, videoDuration } = req.body;
-
   const file = req.file;
 
   if (!title || !description || !videoDuration || !file)
-    return next(new ErrorHandler("Please Enter all details", 404));
+    return next(new ErrorHandler("Please Enter all details", 400));
 
   const course = await Course.findById(id);
-
   if (!course) return next(new ErrorHandler("Course Not Found", 404));
 
-  const fileUri = getDataUri(file);
-  const mycloud = await cloudinary.v2.uploader.upload(fileUri.content, {
-    resource_type: "video",
-  });
+  const fileContent = fs.readFileSync(file.path);
+
+  const fileExtension = path.extname(file.originalname);
+  const s3Key = `lectures/${uuidv4()}${fileExtension}`;
+
+  const params = {
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: s3Key,
+    Body: fileContent,
+    ContentType: file.mimetype,
+    // ACL: "public-read",
+  };
+
+  const uploadResult = await s3.upload(params).promise();
+
+  await unlinkFile(file.path); // delete local temp file
 
   course.lectures.push({
     title,
     description,
     videoDuration,
     video: {
-      public_id: mycloud.public_id,
-      url: mycloud.secure_url,
+      public_id: s3Key,
+      url: uploadResult.Location,
     },
   });
 
   course.numOfVideos = course.lectures.length;
-
   await course.save();
 
   res.status(200).json({
     success: true,
-    message: "Lectures added successfully",
+    message: "Lecture added successfully",
   });
 });
+
 
 //delete course
 export const deleteCourse = catchAsyncError(async (req, res, next) => {
