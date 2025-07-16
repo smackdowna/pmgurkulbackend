@@ -36,6 +36,18 @@ app.use("/api/v1",order);
 app.use("/api/v1",transaction);
 app.use("/api/v1",earning);
 
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    console.error("Multer Error:", err.message);
+    return res.status(400).json({ success: false, message: err.message });
+  } else if (err) {
+    console.error("Unknown Error:", err.message);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+  next();
+});
+
+
 
 export default app;
 
