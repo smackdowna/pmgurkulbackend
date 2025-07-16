@@ -196,24 +196,35 @@ export const addLectures = catchAsyncError(async (req, res, next) => {
   });
 });
 
-
-//delete course
 export const deleteCourse = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
 
   const course = await Course.findById(id);
-
   if (!course) return next(new ErrorHandler("Course Not Found", 404));
 
-  await cloudinary.v2.uploader.destroy(course.poster.public_id);
-
-  for (let i = 0; i < course.lectures.length; i++) {
-    const singleLecture = course.lectures[i];
-    await cloudinary.v2.uploader.destroy(singleLecture.video.public_id, {
-      resource_type: "video",
-    });
+  // ✅ Delete poster from Cloudinary
+  if (course.poster?.public_id) {
+    await cloudinary.v2.uploader.destroy(course.poster.public_id);
   }
 
+  // ✅ Delete lecture videos from S3
+  for (const lecture of course.lectures) {
+    const videoKey = lecture.video?.public_id;
+    if (videoKey) {
+      try {
+        await s3
+          .deleteObject({
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: videoKey,
+          })
+          .promise();
+      } catch (error) {
+        console.error(`Failed to delete S3 video: ${videoKey}`, error);
+      }
+    }
+  }
+
+  // ✅ Remove course from DB
   await Course.deleteOne({ _id: id });
 
   res.status(200).json({
@@ -221,6 +232,7 @@ export const deleteCourse = catchAsyncError(async (req, res, next) => {
     message: "Course deleted successfully",
   });
 });
+
 
 //delete lectures
 export const deleteLectures = catchAsyncError(async (req, res, next) => {
