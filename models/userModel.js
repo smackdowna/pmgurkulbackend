@@ -155,9 +155,11 @@ const schema = new mongoose.Schema({
   },
   gstNumber: {
     type: String,
+    default: "",
   },
   gstCompanyName: {
     type: String,
+    default: "",
   },
   otp: {
     type: String,
