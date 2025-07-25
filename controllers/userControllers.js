@@ -143,9 +143,6 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     gstNumber,
     gstCompanyName,
   } = req.body;
- 
- 
-
 
   if (!mobileNumber)
     return next(new ErrorHandler("Mobile number is required", 400));
@@ -189,7 +186,8 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     unverifiedUser.addline1 = addline1 || unverifiedUser.addline1;
     unverifiedUser.addline2 = addline2 || unverifiedUser.addline2;
     unverifiedUser.gstNumber = gstNumber || unverifiedUser.gstNumber;
-    unverifiedUser.gstCompanyName = gstCompanyName || unverifiedUser.gstCompanyName;
+    unverifiedUser.gstCompanyName =
+      gstCompanyName || unverifiedUser.gstCompanyName;
 
     if (refralCode) {
       const referredUser = await User.findOne({ refralCode });
@@ -236,10 +234,10 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
   const newReferralCode = `PM${Math.floor(1000 + Math.random() * 9000)}`;
 
   //  const currentYear = new Date().getFullYear();
-  // const randomDigits = Math.floor(100 + Math.random() * 900); 
+  // const randomDigits = Math.floor(100 + Math.random() * 900);
   // const userId = `PM-${currentYear}${randomDigits}`;
   //  console.log(userId);
-   
+
   const user = await User.create({
     full_name,
     email,
@@ -478,8 +476,8 @@ export const updateUserDetails = catchAsyncError(async (req, res, next) => {
   if (pinCode) user.pinCode = pinCode;
   if (addline1) user.addline1 = addline1;
   if (addline2) user.addline2 = addline2;
-  if (gstNumber) user.gstNumber = gstNumber || "";
-  if (gstCompanyName) user.gstCompanyName = gstCompanyName || "";
+  if ("gstNumber" in req.body) user.gstNumber = gstNumber || "";
+  if ("gstCompanyName" in req.body) user.gstCompanyName = gstCompanyName || "";
 
   // Update bank information if provided
   if (bankInfo) {
