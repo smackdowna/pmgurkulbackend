@@ -395,7 +395,7 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
 
 //get my profile
 export const getmyProfile = catchAsyncError(async (req, res, next) => {
-  const user = await User.findById(req.user.id);
+  const user = await User.findById(req.user.id).populate("referredBy", "full_name email refralCode");
 
   res.status(200).json({
     success: true,
