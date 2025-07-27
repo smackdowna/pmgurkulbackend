@@ -8,6 +8,22 @@ import { Course } from "../models/Course.js";
 import sendEmail from "../utils/sendEmail.js";
 import axios from "axios";
 
+async function deleteUsersWithExpiredOTP() {
+  try {
+    const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
+    await User.deleteMany({
+      verified: false,
+      createdAt: { $lte: new Date(tenMinutesAgo) },
+    });
+
+    console.log("Users with expired OTP deleted successfully.");
+  } catch (error) {
+    console.error("Error deleting users with expired OTP:", error);
+  }
+}
+
+setInterval(deleteUsersWithExpiredOTP, 10 * 60 * 1000);
+
 //generate OTP
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000);
 
@@ -44,12 +60,7 @@ export const sendOTP = catchAsyncError(async (req, res, next) => {
       otp: otp,
       otp_expiry: Date.now() + 60 * 1000,
     });
-  } else {
-    user.otp = otp;
-    user.otp_expiry = Date.now() + 60 * 1000;
-    await user.save();
   }
-
   const emailMessage = `Dear User,
 
   Thank you for choosing PMGURUKKUL! 🏆
@@ -112,7 +123,8 @@ export const verifyOTP = catchAsyncError(async (req, res, next) => {
   if (!user.full_name) {
     // New user, redirect to registration step
     return res.status(200).json({
-      message: "OTP verified, proceed to registration",
+      message:
+        "OTP verified. Please complete your profile setup within 10 minutes.",
       newUser: true,
     });
   }
@@ -276,19 +288,18 @@ export const loginUser = catchAsyncError(async (req, res, next) => {
 
   const user = await User.findOne({ email }).select("+password");
 
-  
-  if (user.verified === false) {
-    return next(
-      new ErrorHandler(
-        "You are not verified, please sign up again to complete the verification process",
-        404
-      )
-    );
+  if (!user) {
+    return next(new ErrorHandler("User not found!", 401));
   }
 
-  if (!user) {
-    return next(new ErrorHandler("Invalid email or password", 401));
-  }
+  // if (user.verified === false) {
+  //   return next(
+  //     new ErrorHandler(
+  //       "You are not verified, please sign up again to complete the verification process",
+  //       404
+  //     )
+  //   );
+  // }
 
   const isPasswordMatched = await user.comparePassword(password);
 
@@ -309,6 +320,10 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
   //Finding user
   const user = await User.findOne({ email: req.body.email });
 
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+
   if (user.verified === false) {
     return next(
       new ErrorHandler(
@@ -316,10 +331,6 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
         404
       )
     );
-  }
-
-  if (!user) {
-    return next(new ErrorHandler("User not found", 404));
   }
 
   // Get ResetPassword Token
