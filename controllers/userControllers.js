@@ -316,7 +316,7 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
   //   "host"
   // )}/api/v1/password/reset/${resetToken}`;
 
-  const frontendurl = `https://pm-gurukul.vercel.app/auth/reset-password/${resetToken}`;
+  const frontendurl = `https://pmgurukkul.com/auth/reset-password/${resetToken}`;
 
   const message = `Dear ${user.full_name},
 
