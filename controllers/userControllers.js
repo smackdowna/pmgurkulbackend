@@ -298,7 +298,7 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
 
   const user = await User.findOne({ email: req.body.email});
 
-  if (!user.verified) {
+  if (!user.verified==false) {
     return next(new ErrorHandler("You are Not Verified , Please signup Again to complete verification process", 404));
   }
 
