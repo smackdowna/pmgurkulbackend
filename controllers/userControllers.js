@@ -276,6 +276,16 @@ export const loginUser = catchAsyncError(async (req, res, next) => {
 
   const user = await User.findOne({ email }).select("+password");
 
+  
+  if (user.verified === false) {
+    return next(
+      new ErrorHandler(
+        "You are not verified, please sign up again to complete the verification process",
+        404
+      )
+    );
+  }
+
   if (!user) {
     return next(new ErrorHandler("Invalid email or password", 401));
   }
@@ -297,12 +307,16 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
   }
 
   //Finding user
-  const user = await User.findOne({ email: req.body.email});
+  const user = await User.findOne({ email: req.body.email });
 
   if (user.verified === false) {
-  return next(new ErrorHandler("You are not verified, please sign up again to complete the verification process", 404));
-}
-
+    return next(
+      new ErrorHandler(
+        "You are not verified, please sign up again to complete the verification process",
+        404
+      )
+    );
+  }
 
   if (!user) {
     return next(new ErrorHandler("User not found", 404));
@@ -401,7 +415,10 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
 
 //get my profile
 export const getmyProfile = catchAsyncError(async (req, res, next) => {
-  const user = await User.findById(req.user.id).populate("referredBy", "full_name email refralCode");
+  const user = await User.findById(req.user.id).populate(
+    "referredBy",
+    "full_name email refralCode"
+  );
 
   res.status(200).json({
     success: true,
