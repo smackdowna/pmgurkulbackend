@@ -296,6 +296,7 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Please enter email", 404));
   }
 
+  //Finding user
   const user = await User.findOne({ email: req.body.email});
 
   if (user.verified === false) {
