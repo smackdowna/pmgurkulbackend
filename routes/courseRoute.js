@@ -3,9 +3,9 @@ import { isAuthenticated, authorizeRoles, hasPurchasedCourse } from "../middlewa
 import {
   addForumThread,
   addLectures,
-  addReplyToForum,
   createCourse,
   deleteCourse,
+  deleteForumFromCourse,
   deleteLectures,
   getAllCategories,
   getAllCourses,
@@ -25,10 +25,15 @@ router
 //create course --Admin
 router
   .route("/courses/:courseId/forum")
-  .post(isAuthenticated, authorizeRoles("admin"), singleUpload, addForumThread);
-router
-  .route("/courses/:courseId/forum/:messageId/reply")
-  .post(isAuthenticated, singleUpload, addReplyToForum);
+  .post(isAuthenticated, singleUpload, addForumThread);
+
+  // routes/course.route.ts
+router.delete('/:courseId/forum/:forumId', deleteForumFromCourse);
+
+  // Add reply
+// router
+//   .route("/courses/:courseId/forum/:messageId/reply")
+//   .post(isAuthenticated, singleUpload, addReplyToForum);
 
   router
   .route("/courses/:courseId/forum")

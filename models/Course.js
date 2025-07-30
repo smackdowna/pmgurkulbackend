@@ -1,27 +1,17 @@
 import mongoose from "mongoose";
 
-const replySchema = new mongoose.Schema({
-  sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  message: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-});
-
 const forumMessageSchema = new mongoose.Schema({
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // admin
-  title: { type: String, required: true },
+  sender: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   content: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
-  replies: [replySchema]
 });
-
-
 
 const schema = new mongoose.Schema({
   title: {
     type: String,
     required: [true, "Please enter course title"],
-    minLength: [4, "Title should be at least 4 charachetr"],
-    maxLength: [80, "Title should not be greater than 80 characheter"],
+    minLength: [4, "Title should be at least 4 characters"],
+    maxLength: [80, "Title should not be greater than 80 characters"],
   },
   description: {
     type: String,

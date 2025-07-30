@@ -269,13 +269,10 @@ export const getCoursedetails = catchAsyncError(async (req, res, next) => {
   const course = await Course.findById(req.params.id)
     .populate({
       path: "forum",
-      populate: [
-        { path: "sender", select: "full_name email" }, // populate forum.sender
-        {
-          path: "replies.sender", // nested population of reply sender
-          select: "full_name email",
-        },
-      ],
+      populate: {
+        path: "sender",
+        select: "full_name email role",
+      },
     });
 
   if (!course) return next(new ErrorHandler("Course Not Found", 404));
@@ -285,6 +282,7 @@ export const getCoursedetails = catchAsyncError(async (req, res, next) => {
     course,
   });
 });
+
 
 
 //get categories
@@ -319,29 +317,48 @@ export const addForumThread = async (req, res) => {
   course.forum.push({
     title,
     content,
-    createdBy: userId,
+    sender: userId,
   });
 
   await course.save();
   res.status(201).json({ success: true, message: "Forum thread added" });
 };
 
-export const addReplyToForum = async (req, res) => {
-  const { courseId, messageId } = req.params;
-  const { message } = req.body;
-  const userId = req.user._id;
+export const deleteForumFromCourse = async (req, res) => {
+  const { courseId, forumId } = req.params;
 
-  const course = await Course.findById(courseId);
-  if (!course) return res.status(404).json({ message: "Course not found" });
+  try {
+    const course = await Course.findById(courseId);
+    if (!course) return res.status(404).json({ message: 'Course not found' });
 
-  const thread = course.forum.id(messageId);
-  if (!thread) return res.status(404).json({ message: "Forum thread not found" });
+    // Corrected to match schema field name: "forum"
+    course.forum = course.forum.filter((forum) => forum._id.toString() !== forumId);
 
-  thread.replies.push({
-    sender: userId,
-    message,
-  });
+    await course.save();
 
-  await course.save();
-  res.status(201).json({ success: true, message: "Reply added" });
+    res.status(200).json({ message: 'Forum deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
 };
+
+
+// export const addReplyToForum = async (req, res) => {
+//   const { courseId, messageId } = req.params;
+//   const { message } = req.body;
+//   const userId = req.user._id;
+
+//   const course = await Course.findById(courseId);
+//   if (!course) return res.status(404).json({ message: "Course not found" });
+
+//   const thread = course.forum.id(messageId);
+//   if (!thread) return res.status(404).json({ message: "Forum thread not found" });
+
+//   thread.replies.push({
+//     sender: userId,
+//     message,
+//   });
+
+//   await course.save();
+//   res.status(201).json({ success: true, message: "Reply added" });
+// };
