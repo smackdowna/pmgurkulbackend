@@ -31,12 +31,16 @@ import course from "./routes/courseRoute.js";
 import order from "./routes/orderRoute.js";
 import transaction from "./routes/transaction.js";
 import earning from "./routes/earningRoute.js";
+import exam from "./routes/examRoute.js";
+import examAnswer from "./routes/examAnswerRoute.js";
 
 app.use("/api/v1", user);
 app.use("/api/v1",course);
 app.use("/api/v1",order);
 app.use("/api/v1",transaction);
 app.use("/api/v1",earning);
+app.use("/api/v1", exam);
+app.use("/api/v1", examAnswer);
 
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
