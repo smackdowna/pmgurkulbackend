@@ -266,7 +266,17 @@ export const deleteLectures = catchAsyncError(async (req, res, next) => {
 
 //get course details
 export const getCoursedetails = catchAsyncError(async (req, res, next) => {
-  const course = await Course.findById(req.params.id);
+  const course = await Course.findById(req.params.id)
+    .populate({
+      path: "forum",
+      populate: [
+        { path: "sender", select: "full_name email" }, // populate forum.sender
+        {
+          path: "replies.sender", // nested population of reply sender
+          select: "full_name email",
+        },
+      ],
+    });
 
   if (!course) return next(new ErrorHandler("Course Not Found", 404));
 
@@ -275,6 +285,7 @@ export const getCoursedetails = catchAsyncError(async (req, res, next) => {
     course,
   });
 });
+
 
 //get categories
 export const getAllCategories = catchAsyncError(async (req, res, next) => {
@@ -295,3 +306,42 @@ export const getAllCategories = catchAsyncError(async (req, res, next) => {
     categories,
   });
 });
+
+
+export const addForumThread = async (req, res) => {
+  const { courseId } = req.params;
+  const { title, content } = req.body;
+  const userId = req.user._id;
+
+  const course = await Course.findById(courseId);
+  if (!course) return res.status(404).json({ message: "Course not found" });
+
+  course.forum.push({
+    title,
+    content,
+    createdBy: userId,
+  });
+
+  await course.save();
+  res.status(201).json({ success: true, message: "Forum thread added" });
+};
+
+export const addReplyToForum = async (req, res) => {
+  const { courseId, messageId } = req.params;
+  const { message } = req.body;
+  const userId = req.user._id;
+
+  const course = await Course.findById(courseId);
+  if (!course) return res.status(404).json({ message: "Course not found" });
+
+  const thread = course.forum.id(messageId);
+  if (!thread) return res.status(404).json({ message: "Forum thread not found" });
+
+  thread.replies.push({
+    sender: userId,
+    message,
+  });
+
+  await course.save();
+  res.status(201).json({ success: true, message: "Reply added" });
+};

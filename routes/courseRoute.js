@@ -1,7 +1,9 @@
 import express from "express";
 import { isAuthenticated, authorizeRoles, hasPurchasedCourse } from "../middlewares/auth.js";
 import {
+  addForumThread,
   addLectures,
+  addReplyToForum,
   createCourse,
   deleteCourse,
   deleteLectures,
@@ -20,6 +22,20 @@ router
   .route("/createcourse")
   .post(isAuthenticated, authorizeRoles("admin"), singleUpload, createCourse);
 
+//create course --Admin
+router
+  .route("/courses/:courseId/forum")
+  .post(isAuthenticated, authorizeRoles("admin"), singleUpload, addForumThread);
+router
+  .route("/courses/:courseId/forum/:messageId/reply")
+  .post(isAuthenticated, singleUpload, addReplyToForum);
+
+  router
+  .route("/courses/:courseId/forum")
+  .get(getCourseLectures)
+  .put(isAuthenticated, authorizeRoles("admin"), singleUploadS3, addLectures)
+  .delete(isAuthenticated, authorizeRoles("admin"), deleteCourse);
+
 //get all course without lectures
 router.route("/courses").get(getAllCourses);
 
@@ -30,6 +46,7 @@ router
   .get(getCourseLectures)
   .put(isAuthenticated, authorizeRoles("admin"), singleUploadS3, addLectures)
   .delete(isAuthenticated, authorizeRoles("admin"), deleteCourse);
+
 
 
 //delete lectures

@@ -1,5 +1,21 @@
 import mongoose from "mongoose";
 
+const replySchema = new mongoose.Schema({
+  sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  message: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+const forumMessageSchema = new mongoose.Schema({
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // admin
+  title: { type: String, required: true },
+  content: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+  replies: [replySchema]
+});
+
+
+
 const schema = new mongoose.Schema({
   title: {
     type: String,
@@ -85,6 +101,7 @@ const schema = new mongoose.Schema({
     required: [true, "Please enter course discountedPrice"],
     default: 0,
   },
+  forum: [forumMessageSchema],
   createdAt: {
     type: Date,
     default: Date.now(),
