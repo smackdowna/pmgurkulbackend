@@ -168,11 +168,19 @@ const schema = new mongoose.Schema({
     type: Date,
   },
   purchasedCourses: [
-    {
+  {
+    courseId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
+      required: true,
     },
-  ],
+    isAttendedOnExam: {
+      type: Boolean,
+      default: false,
+    },
+  }
+],
+
   createdAt: {
     type: Date,
     default: Date.now(),

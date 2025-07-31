@@ -907,21 +907,20 @@ export const rejectKYCStatus = catchAsyncError(async (req, res, next) => {
 //get all purchased courses
 export const getUserPurchasedCourses = catchAsyncError(
   async (req, res, next) => {
-    // Find the user by ID
-    const user = await User.findById(req.user.id).populate(
-      "purchasedCourses",
-      "title description poster numOfVideos category"
-    );
+    const user = await User.findById(req.user.id).populate({
+      path: "purchasedCourses.courseId",
+      select: "title description poster numOfVideos category",
+    });
 
-    // If the user is not found
     if (!user) {
       return next(new ErrorHandler("User not found", 404));
     }
 
-    // Return the purchased courses
+    // Return both course details and attendance status
     res.status(200).json({
       success: true,
       purchasedCourses: user.purchasedCourses,
     });
   }
 );
+

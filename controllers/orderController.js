@@ -11,19 +11,18 @@ import { Counter } from "../models/CounterModel.js";
 export const createOrder = catchAsyncError(async (req, res, next) => {
   const { courseId } = req.body;
 
-// Generate a new paymentId
-let paymentId = "001"; // default for first order
-const counter = await Counter.findOneAndUpdate(
-  { name: "payment" },
-  { $inc: { value: 1 } },
-  { new: true, upsert: true }
-);
+  // Generate a new paymentId
+  let paymentId = "001"; // default for first order
+  const counter = await Counter.findOneAndUpdate(
+    { name: "payment" },
+    { $inc: { value: 1 } },
+    { new: true, upsert: true }
+  );
 
-// Pad the counter value with leading zeros (3 digits)
-if (counter?.value) {
-  paymentId = counter.value.toString().padStart(3, "0"); // This ensures "001", "002", etc.
-}
-
+  // Pad the counter value with leading zeros (3 digits)
+  if (counter?.value) {
+    paymentId = counter.value.toString().padStart(3, "0"); // This ensures "001", "002", etc.
+  }
 
   // Check if courseId is provided and is an array
   if (!courseId || !Array.isArray(courseId) || courseId.length === 0) {
@@ -43,7 +42,11 @@ if (counter?.value) {
       return next(new ErrorHandler(`Course with ID ${id} not found`, 404));
 
     // Check if the user has already purchased this course
-    if (user.purchasedCourses.includes(id)) {
+    const alreadyPurchased = user.purchasedCourses.some(
+      (item) => item.courseId.toString() === id
+    );
+
+    if (alreadyPurchased) {
       return next(
         new ErrorHandler(`You have already purchased course with ID ${id}`, 400)
       );
@@ -73,22 +76,27 @@ if (counter?.value) {
   // Amount credited to referrer (after TDS deduction)
   const amountCredited = commission - tds;
 
-  // Create the order with all course IDs
+  // Create the order
   const order = await Order.create({
     user: req.user.id,
     course: orderCourses,
     referralCodeUsed,
     totalPrice,
     discountedPrice: discountedPriceTotal,
-    gst: 18, // You can make this dynamic if necessary
+    gst: 18,
     commission,
     tds,
-    amountCredited, // Referrer's net amount after TDS
+    amountCredited,
     paymentId,
   });
 
-  // Update the user (purchaser) details after course purchase
-  user.purchasedCourses.push(...orderCourses);
+  // ✅ Update the user’s purchasedCourses with the new structure
+  const newlyPurchased = orderCourses.map((id) => ({
+    courseId: id,
+    isAttendedOnExam: false,
+  }));
+
+  user.purchasedCourses.push(...newlyPurchased);
   await user.save();
 
   // Update the referrer's earnings after commission and TDS deduction
@@ -119,7 +127,7 @@ if (counter?.value) {
     const course = await Course.findById(id);
     return course.title;
   });
-  
+
   const resolvedCourseTitles = await Promise.all(courseTitles);
   const courseTitleString = resolvedCourseTitles.join(", ");
 
@@ -152,13 +160,12 @@ PMGURUKKUL Team`;
 
 //get my order
 export const myOrders = catchAsyncError(async (req, res, next) => {
-  const orders = await Order.find({ user: req.user._id }).sort({
-    createdAt: -1,
-  })
-  .populate("user", "full_name mobileNumber") // Populate user with specific fields
-  .populate("course", "title description");
-  ;
-
+  const orders = await Order.find({ user: req.user._id })
+    .sort({
+      createdAt: -1,
+    })
+    .populate("user", "full_name mobileNumber") // Populate user with specific fields
+    .populate("course", "title description");
   res.status(200).json({
     success: true,
     orders,
