@@ -8,6 +8,15 @@ export const attendExam = catchAsyncError(async (req, res, next) => {
   const { examId, answers } = req.body;
   const userId = req.user._id;
 
+  const alreadyGiven = await Answer.findOne({ examId, studentId:userId });
+
+    if (alreadyGiven) {
+      return res.status(400).json({
+        success: false,
+        message: "You have already attended on this exam.",
+      });
+    }
+  
   if (!examId || !Array.isArray(answers) || answers.length === 0) {
     return next(new ErrorHandler("Please provide examId and answers", 400));
   }

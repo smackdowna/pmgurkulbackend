@@ -1,13 +1,21 @@
 import express from "express";
-import { createExam } from "../controllers/examController.js";
+import { createExam, getCourseQuestions, updateExam } from "../controllers/examController.js";
 import { authorizeRoles, isAuthenticated } from "../middlewares/auth.js";
 
 const router = express.Router(); 
 
-//create course --Admin
+//Add questions --Admin
 router
   .route("/exam/add-questions")
   .post(isAuthenticated, authorizeRoles("admin"), createExam);
+
+router
+  .route("/exam/questions/:courseId")
+  .get(isAuthenticated, getCourseQuestions);
+
+router
+  .route("/exam/questions/:examId")
+  .put(isAuthenticated, authorizeRoles("admin"), updateExam);
 
 //   router
 //   .route("/courses/:courseId/forum")
