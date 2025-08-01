@@ -8,15 +8,6 @@ export const attendExam = catchAsyncError(async (req, res, next) => {
   const { examId, answers } = req.body;
   const userId = req.user._id;
 
-  const alreadyGiven = await Answer.findOne({ examId, studentId: userId });
-
-  if (alreadyGiven) {
-    return res.status(400).json({
-      success: false,
-      message: "You have already attended on this exam.",
-    });
-  }
-
   if (!examId || !Array.isArray(answers) || answers.length === 0) {
     return next(new ErrorHandler("Please provide examId and answers", 400));
   }
@@ -26,6 +17,34 @@ export const attendExam = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Exam not found", 404));
   }
 
+  // Fetch user and check purchased course
+  const user = await User.findOne({
+    _id: userId,
+    "purchasedCourses.courseId": exam.courseId,
+  });
+
+  if (!user) {
+    return next(new ErrorHandler("User or course not found", 404));
+  }
+
+  const course = user.purchasedCourses.find(
+    (c) => c.courseId.toString() === exam.courseId.toString()
+  );
+
+  if (!course) {
+    return next(
+      new ErrorHandler("Course not found in user's purchased courses", 404)
+    );
+  }
+
+  if (course.examLimitLeft <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: "You have no remaining attempts for this exam.",
+    });
+  }
+
+  // Score calculation
   let score = 0;
   const questionMap = new Map();
   exam.questions.forEach((q) => questionMap.set(q._id.toString(), q));
@@ -39,6 +58,7 @@ export const attendExam = catchAsyncError(async (req, res, next) => {
 
   const passed = score >= exam.passingMark;
 
+  // Save the answer
   const newAnswer = await Answer.create({
     studentId: userId,
     examId,
@@ -47,10 +67,31 @@ export const attendExam = catchAsyncError(async (req, res, next) => {
     passed,
   });
 
-  await User.updateOne(
-    { _id: userId, "purchasedCourses.courseId": exam.courseId },
-    { $set: { "purchasedCourses.$.isAttendedOnExam": true } }
-  );
+  if (passed) {
+    // Passed: mark as passed and reset attempts
+    await User.updateOne(
+      { _id: userId, "purchasedCourses.courseId": exam.courseId },
+      {
+        $set: {
+          "purchasedCourses.$.isAttendedOnExam": true,
+          "purchasedCourses.$.isPassed": true,
+          "purchasedCourses.$.examLimitLeft": 0,
+        },
+      }
+    );
+  } else {
+    // Failed: decrease limit
+    const remainingAttempts = course.examLimitLeft - 1;
+    await User.updateOne(
+      { _id: userId, "purchasedCourses.courseId": exam.courseId },
+      {
+        $set: {
+          "purchasedCourses.$.isAttendedOnExam": true,
+          "purchasedCourses.$.examLimitLeft": remainingAttempts,
+        },
+      }
+    );
+  }
 
   res.status(201).json({
     success: true,

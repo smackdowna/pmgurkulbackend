@@ -178,6 +178,14 @@ const schema = new mongoose.Schema({
       type: Boolean,
       default: false,
     },
+      isPassed: {
+      type: Boolean,
+      default: false,
+    },
+      examLimitLeft: {
+      type: Number,
+      default: 2,
+    },
   }
 ],
 
