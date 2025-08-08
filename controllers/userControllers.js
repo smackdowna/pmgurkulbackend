@@ -268,10 +268,9 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     addline2,
     gstNumber,
     gstCompanyName,
+    createdAt: new Date.now(),
     // userId,
   });
-
-  console.log(user);
 
   sendToken(res, user, "Registered Successfully", 200);
 });

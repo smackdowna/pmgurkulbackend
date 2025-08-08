@@ -33,10 +33,10 @@ const schema = new mongoose.Schema({
   country: {
     type: String,
   },
-  password:{
+  password: {
     type: String,
     minlength: [8, "Password should be at least 8 characters long"],
-    select: false
+    select: false,
   },
   state: {
     type: String,
@@ -47,10 +47,10 @@ const schema = new mongoose.Schema({
   pinCode: {
     type: String,
   },
-  addline1:{
+  addline1: {
     type: String,
   },
-  addline2:{
+  addline2: {
     type: String,
   },
   panCard: {
@@ -67,7 +67,7 @@ const schema = new mongoose.Schema({
     },
   },
   document: {
-    doctype:{
+    doctype: {
       type: String,
     },
     documentNumber: {
@@ -88,7 +88,7 @@ const schema = new mongoose.Schema({
       url: {
         type: String,
       },
-    }
+    },
   },
   bankInfo: [
     {
@@ -118,7 +118,7 @@ const schema = new mongoose.Schema({
       },
     },
   ],
-  passbookImage:{
+  passbookImage: {
     public_id: {
       type: String,
     },
@@ -151,7 +151,7 @@ const schema = new mongoose.Schema({
   kyc_status: {
     type: String,
     default: "Pending",
-    enum: ["Pending", "Approved","Rejected"],
+    enum: ["Pending", "Approved", "Rejected"],
   },
   gstNumber: {
     type: String,
@@ -168,26 +168,26 @@ const schema = new mongoose.Schema({
     type: Date,
   },
   purchasedCourses: [
-  {
-    courseId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Course",
-      required: true,
-    },
-    isAttendedOnExam: {
-      type: Boolean,
-      default: false,
-    },
+    {
+      courseId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Course",
+        required: true,
+      },
+      isAttendedOnExam: {
+        type: Boolean,
+        default: false,
+      },
       isPassed: {
-      type: Boolean,
-      default: false,
-    },
+        type: Boolean,
+        default: false,
+      },
       examLimitLeft: {
-      type: Number,
-      default: 2,
+        type: Number,
+        default: 2,
+      },
     },
-  }
-],
+  ],
 
   createdAt: {
     type: Date,
@@ -205,7 +205,6 @@ schema.pre("save", async function (next) {
 
   this.password = await bcrypt.hash(this.password, 10);
 });
-
 
 //JWT TOKEN
 schema.methods.getJWTToken = function () {

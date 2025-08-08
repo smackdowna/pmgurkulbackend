@@ -5,7 +5,7 @@ import { User } from "../models/userModel.js";
 import ErrorHandler from "../utils/errorHandler.js";
 
 export const attendExam = catchAsyncError(async (req, res, next) => {
-  const { examId, answers } = req.body;
+  const { examId, courseId, answers } = req.body;
   const userId = req.user._id;
 
   if (!examId || !Array.isArray(answers) || answers.length === 0) {
@@ -62,6 +62,7 @@ export const attendExam = catchAsyncError(async (req, res, next) => {
   const newAnswer = await Answer.create({
     studentId: userId,
     examId,
+    courseId,
     answers,
     score,
     passed,
