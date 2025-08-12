@@ -42,6 +42,7 @@ export const generateCertificate = catchAsyncError(async (req, res, next) => {
   });
 });
 
+// For students
 export const getStudentCertificates = catchAsyncError(
   async (req, res, next) => {
     const userId = req.user?._id;
@@ -50,7 +51,7 @@ export const getStudentCertificates = catchAsyncError(
       return next(new ErrorHandler("User not found", 401));
     }
 
-    const certificates = await Certificate.find({ studentId:userId });
+    const certificates = await Certificate.find({ studentId: userId });
 
     res.status(200).json({
       success: true,
@@ -59,3 +60,14 @@ export const getStudentCertificates = catchAsyncError(
     });
   }
 );
+
+// For students
+export const getAllCertificates = catchAsyncError(async (req, res, next) => {
+  const certificates = await Certificate.find();
+
+  res.status(200).json({
+    success: true,
+    count: certificates.length,
+    certificates,
+  });
+});
