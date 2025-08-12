@@ -50,7 +50,7 @@ export const getStudentCertificates = catchAsyncError(
       return next(new ErrorHandler("User not found", 401));
     }
 
-    const certificates = await Certificate.find({ userId });
+    const certificates = await Certificate.find({ studentId:userId });
 
     res.status(200).json({
       success: true,
