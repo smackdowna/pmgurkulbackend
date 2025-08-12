@@ -10,7 +10,7 @@ import axios from "axios";
 
 async function deleteUsersWithExpiredOTP() {
   try {
-    const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
+    const tenMinutesAgo = Date.now() - 15 * 60 * 1000;
     await User.deleteMany({
       verified: false,
       createdAt: { $lte: new Date(tenMinutesAgo) },
@@ -22,7 +22,7 @@ async function deleteUsersWithExpiredOTP() {
   }
 }
 
-setInterval(deleteUsersWithExpiredOTP, 10 * 60 * 1000);
+setInterval(deleteUsersWithExpiredOTP, 15 * 60 * 1000);
 
 //generate OTP
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000);
@@ -58,7 +58,7 @@ export const sendOTP = catchAsyncError(async (req, res, next) => {
       mobileNumber,
       email,
       otp: otp,
-      otp_expiry: Date.now() + 60 * 1000,
+      otp_expiry: Date.now() + 2 * 60 * 1000,
     });
   }
   const emailMessage = `Dear User,
@@ -198,8 +198,8 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     unverifiedUser.addline1 = addline1 || unverifiedUser.addline1;
     unverifiedUser.addline2 = addline2 || unverifiedUser.addline2;
     unverifiedUser.gstNumber = gstNumber || unverifiedUser.gstNumber;
-    unverifiedUser.gstCompanyName =
-      gstCompanyName || unverifiedUser.gstCompanyName;
+    unverifiedUser.gstCompanyName = gstCompanyName || unverifiedUser.gstCompanyName;
+    unverifiedUser.verified = true;
 
     if (refralCode) {
       const referredUser = await User.findOne({ refralCode });
