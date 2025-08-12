@@ -11,29 +11,42 @@ import ErrorHandler from "../utils/errorHandler.js";
 //   return newId;
 // };
 
+// certificateService.js (new file or inside your controller file)
+
+// Reusable core logic function
+
+
+
 export const generateCertificateId = () => {
   const randomNumber = Math.floor(10000 + Math.random() * 90000);
   return `PM-${randomNumber}`;
 };
 
-export const generateCertificate = catchAsyncError(async (req, res, next) => {
-  const userId = req.user?._id;
-  const { studentName } = req.body;
+// Reusable function
+export const createCertificate = async (userId, studentName, courseName) => {
+  if (!studentName || !courseName) throw new Error("Student and course name are required");
 
-  // Validate request
-  if (!studentName) {
-    return next(new ErrorHandler("Please provide student name", 400));
-  }
-
-  // Generate unique certificateId
   const certificateId = await generateCertificateId();
 
-  // Create certificate
   const certificate = await Certificate.create({
     studentId: userId,
     studentName,
+    courseName,
     certificateId,
   });
+
+  return certificate;
+};
+
+export const generateCertificate = catchAsyncError(async (req, res, next) => {
+  const userId = req.user?._id;
+  const { studentName, courseName } = req.body;
+
+  if (!studentName) {
+    return next(new ErrorHandler("Please provide student name and course name", 400));
+  }
+
+  const certificate = await createCertificate(userId, studentName, courseName);
 
   res.status(201).json({
     success: true,
@@ -41,6 +54,7 @@ export const generateCertificate = catchAsyncError(async (req, res, next) => {
     certificate,
   });
 });
+
 
 // For students
 export const getStudentCertificates = catchAsyncError(

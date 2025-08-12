@@ -3,10 +3,14 @@ import Exam from "../models/Exam.js";
 import Answer from "../models/examAnswer.js";
 import { User } from "../models/userModel.js";
 import ErrorHandler from "../utils/errorHandler.js";
+import { createCertificate } from "./certificateController.js";
+import { Course } from './../models/Course.js';
 
 export const attendExam = catchAsyncError(async (req, res, next) => {
   const { examId, courseId, answers } = req.body;
   const userId = req.user._id;
+
+  const examCourse = await Course.findById(courseId);
 
   if (!examId || !Array.isArray(answers) || answers.length === 0) {
     return next(new ErrorHandler("Please provide examId and answers", 400));
@@ -58,6 +62,11 @@ export const attendExam = catchAsyncError(async (req, res, next) => {
 
   const passed = score >= exam.passingMark;
 
+  if(passed){
+    await createCertificate(userId, user?.full_name, examCourse?.title);
+
+  }
+
   // Save the answer
   const newAnswer = await Answer.create({
     studentId: userId,
@@ -93,6 +102,8 @@ export const attendExam = catchAsyncError(async (req, res, next) => {
       }
     );
   }
+
+  
 
   res.status(201).json({
     success: true,

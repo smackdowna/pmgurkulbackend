@@ -12,6 +12,11 @@ const certificateSchema = new Schema(
       required: true,
       trim: true,
     },
+    courseName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     certificateId: {
       type: String,
       required: true,

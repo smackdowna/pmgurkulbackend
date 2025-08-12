@@ -184,7 +184,7 @@ const schema = new mongoose.Schema({
       },
       examLimitLeft: {
         type: Number,
-        default: 2,
+        default: 3,
       },
     },
   ],
