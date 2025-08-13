@@ -55,7 +55,7 @@ export const paymentVerification = async (req, res) => {
     // });
 
     res.redirect(
-      `https://pmgurukkul.com/payment-successful/${razorpay_payment_id}`
+      `https://pm-gurukul.vercel.app/payment-successful/${razorpay_payment_id}`
     );
   } else {
     res.status(400).json({
