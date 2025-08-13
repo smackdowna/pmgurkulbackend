@@ -124,7 +124,7 @@ export const verifyOTP = catchAsyncError(async (req, res, next) => {
     // New user, redirect to registration step
     return res.status(200).json({
       message:
-        "OTP verified. Please complete your profile setup within 10 minutes.",
+        "OTP verified. Please complete your profile setup within 15 minutes.",
       newUser: true,
     });
   }
