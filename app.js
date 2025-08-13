@@ -34,6 +34,7 @@ import earning from "./routes/earningRoute.js";
 import exam from "./routes/examRoute.js";
 import examAnswer from "./routes/examAnswerRoute.js";
 import certificate from "./routes/certificateRoute.js";
+import admin from "./routes/adminRoute.js";
 
 app.use("/api/v1", user);
 app.use("/api/v1",course);
@@ -43,6 +44,7 @@ app.use("/api/v1",earning);
 app.use("/api/v1", exam);
 app.use("/api/v1", examAnswer);
 app.use("/api/v1", certificate);
+app.use("/api/v1", admin);
 
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
