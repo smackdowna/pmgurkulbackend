@@ -106,6 +106,57 @@ export const getCourseLectures = catchAsyncError(async (req, res, next) => {
   });
 });
 
+export const updateCourse = catchAsyncError(async (req, res, next) => {
+  const {
+    title,
+    description,
+    courseOverview,
+    courseObjective,
+    category,
+    author,
+    basePrice,
+    discountedPrice,
+    totalDuration,
+  } = req.body;
+
+  const { id } = req.params;
+
+  let course = await Course.findById(id);
+  if (!course) return next(new ErrorHandler("Course not found", 404));
+
+  // If a new file is uploaded, replace the old one
+  if (req.file) {
+    // Delete old poster from cloudinary
+    await cloudinary.v2.uploader.destroy(course.poster.public_id);
+
+    const fileUri = getDataUri(req.file);
+    const mycloud = await cloudinary.v2.uploader.upload(fileUri.content);
+
+    course.poster = {
+      public_id: mycloud.public_id,
+      url: mycloud.secure_url,
+    };
+  }
+
+  course.title = title || course.title;
+  course.description = description || course.description;
+  course.courseOverview = courseOverview || course.courseOverview;
+  course.courseObjective = courseObjective || course.courseObjective;
+  course.category = category || course.category;
+  course.author = author || course.author;
+  course.basePrice = basePrice || course.basePrice;
+  course.discountedPrice = discountedPrice || course.discountedPrice;
+  course.totalDuration = totalDuration || course.totalDuration;
+
+  await course.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Course updated successfully",
+    course,
+  });
+});
+
 //delete lectures
 // export const addLectures = catchAsyncError(async (req, res, next) => {
 //   const { id } = req.params;
@@ -144,8 +195,6 @@ export const getCourseLectures = catchAsyncError(async (req, res, next) => {
 //     message: "Lectures added successfully",
 //   });
 // });
-
-
 
 const unlinkFile = util.promisify(fs.unlink);
 
@@ -233,7 +282,6 @@ export const deleteCourse = catchAsyncError(async (req, res, next) => {
   });
 });
 
-
 //delete lectures
 export const deleteLectures = catchAsyncError(async (req, res, next) => {
   const { courseId, lectureId } = req.query;
@@ -266,14 +314,13 @@ export const deleteLectures = catchAsyncError(async (req, res, next) => {
 
 //get course details
 export const getCoursedetails = catchAsyncError(async (req, res, next) => {
-  const course = await Course.findById(req.params.id)
-    .populate({
-      path: "forum",
-      populate: {
-        path: "sender",
-        select: "full_name email role",
-      },
-    });
+  const course = await Course.findById(req.params.id).populate({
+    path: "forum",
+    populate: {
+      path: "sender",
+      select: "full_name email role",
+    },
+  });
 
   if (!course) return next(new ErrorHandler("Course Not Found", 404));
 
@@ -282,8 +329,6 @@ export const getCoursedetails = catchAsyncError(async (req, res, next) => {
     course,
   });
 });
-
-
 
 //get categories
 export const getAllCategories = catchAsyncError(async (req, res, next) => {
@@ -304,7 +349,6 @@ export const getAllCategories = catchAsyncError(async (req, res, next) => {
     categories,
   });
 });
-
 
 export const addForumThread = async (req, res) => {
   const { courseId } = req.params;
@@ -329,19 +373,20 @@ export const deleteForumFromCourse = async (req, res) => {
 
   try {
     const course = await Course.findById(courseId);
-    if (!course) return res.status(404).json({ message: 'Course not found' });
+    if (!course) return res.status(404).json({ message: "Course not found" });
 
     // Corrected to match schema field name: "forum"
-    course.forum = course.forum.filter((forum) => forum._id.toString() !== forumId);
+    course.forum = course.forum.filter(
+      (forum) => forum._id.toString() !== forumId
+    );
 
     await course.save();
 
-    res.status(200).json({ message: 'Forum deleted successfully' });
+    res.status(200).json({ message: "Forum deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: "Server error", error });
   }
 };
-
 
 // export const addReplyToForum = async (req, res) => {
 //   const { courseId, messageId } = req.params;

@@ -11,6 +11,7 @@ import {
   getAllCourses,
   getCoursedetails,
   getCourseLectures,
+  updateCourse,
 } from "../controllers/courseController.js";
 import singleUpload from "../middlewares/multer.js";
 import { singleUploadS3 } from "../controllers/s3multer.js";
@@ -21,6 +22,11 @@ const router = express.Router();
 router
   .route("/createcourse")
   .post(isAuthenticated, authorizeRoles("admin"), singleUpload, createCourse);
+
+//Update course --Admin
+router
+  .route("/update-course/:id")
+  .put(isAuthenticated, authorizeRoles("admin"), singleUpload, updateCourse);
 
 //create course --Admin
 router
