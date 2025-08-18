@@ -28,6 +28,11 @@ router
   .route("/update-course/:id")
   .put(isAuthenticated, authorizeRoles("admin"), singleUpload, updateCourse);
 
+//Update lecture --Admin
+// router
+//   .route("/update-lecture/:id")
+//   .put(isAuthenticated, authorizeRoles("admin"), singleUpload, updateLecture);
+
 //create course --Admin
 router
   .route("/courses/:courseId/forum")
