@@ -43,6 +43,10 @@ const schema = new mongoose.Schema({
   paymentId: {
     type: String,
   },
+  status : {
+    type: String,
+    default: "paid",
+  },
   createdAt: {
     type: Date,
     default: Date.now,

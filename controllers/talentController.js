@@ -38,7 +38,7 @@ export const createTalent = catchAsyncError(async (req, res, next) => {
 
   // Create Talent entry
   const talent = await Talent.create({
-    userId : req?.user?._id,
+    userId: req?.user?._id,
     title,
     name,
     email,
@@ -61,12 +61,10 @@ export const getAllTalents = catchAsyncError(async (req, res) => {
 
   const filter = {};
 
-  // Apply talentType filter if provided
   if (talentType) {
     filter.talentType = talentType;
   }
 
-  // Apply keyword search across multiple fields
   if (keyword) {
     const searchRegex = new RegExp(keyword, "i");
     filter.$or = [
@@ -76,7 +74,6 @@ export const getAllTalents = catchAsyncError(async (req, res) => {
     ];
   }
 
-  // Fetch talents with filter & sort by creation date
   const talents = await Talent.find(filter).sort({ createdAt: -1 });
 
   res.status(200).json({
@@ -85,7 +82,6 @@ export const getAllTalents = catchAsyncError(async (req, res) => {
     data: talents,
   });
 });
-
 
 // Get single talent by ID
 export const getSingleTalent = catchAsyncError(async (req, res, next) => {
@@ -102,16 +98,22 @@ export const getSingleTalent = catchAsyncError(async (req, res, next) => {
   });
 });
 
-
 // Get my talents
 export const getMyTalents = catchAsyncError(async (req, res, next) => {
   const userId = req.user?._id;
+  const { talentType } = req.query;
 
   if (!userId) {
     return next(new ErrorHandler("User not authenticated", 401));
   }
 
-  const myTalents = await Talent.find({ user: userId }).sort({ createdAt: -1 });
+  // Build filter
+  const filter = { userId };
+  if (talentType) {
+    filter.talentType = talentType;
+  }
+
+  const myTalents = await Talent.find(filter).sort({ createdAt: -1 });
 
   res.status(200).json({
     success: true,
@@ -119,3 +121,35 @@ export const getMyTalents = catchAsyncError(async (req, res, next) => {
     data: myTalents,
   });
 });
+
+
+// Delete talent by ID
+export const deleteTalentById = catchAsyncError(async (req, res, next) => {
+  const { id } = req.params;
+  const user = req.user; // Should contain _id and role
+
+  if (!user) {
+    return next(new ErrorHandler("User not authenticated", 401));
+  }
+
+  let talent;
+
+  if (user.role === "admin") {
+    talent = await Talent.findById(id);
+  } else {
+    talent = await Talent.findOne({ _id: id, userId: user._id });
+  }
+
+  if (!talent) {
+    return next(new ErrorHandler("Talent not found or not authorized", 404));
+  }
+
+  await Talent.deleteOne({ _id: id });
+
+  res.status(200).json({
+    success: true,
+    message: "Talent deleted successfully",
+  });
+});
+
+

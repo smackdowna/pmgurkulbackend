@@ -32,5 +32,6 @@ router.route("/checkout").post(isAuthenticated, checkout);
 
 //payment verification
 router.route("/paymentVerification").post(isAuthenticated, paymentVerification);
+router.route("/order/cancel").put(isAuthenticated);
 
 export default router;

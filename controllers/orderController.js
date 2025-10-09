@@ -201,3 +201,38 @@ export const getSingleOrder = catchAsyncError(async (req, res, next) => {
     order,
   });
 });
+
+
+// Cancel order by ID
+export const cancelOrder = catchAsyncError(async (req, res, next) => {
+  const { id } = req.params;
+  const user = req.user;
+
+  if (!user) {
+    return next(new ErrorHandler("User not authenticated", 401));
+  }
+
+  let order;
+
+  if (user.role === "admin") {
+    // Admin can cancel any order
+    order = await Order.findById(id);
+  } else {
+    // Normal user can cancel only their own order
+    order = await Order.findOne({ _id: id, userId: user._id });
+  }
+
+  if (!order) {
+    return next(new ErrorHandler("Order not found or not authorized", 404));
+  }
+
+  order.status = "cancelled";
+  await order.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Order cancelled successfully",
+    order,
+  });
+});
+

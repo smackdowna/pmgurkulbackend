@@ -1,7 +1,8 @@
 import express from "express";
-import { isAuthenticated } from "../middlewares/auth.js";
+import { authorizeRoles, isAuthenticated } from "../middlewares/auth.js";
 import {
   createTalent,
+  deleteTalentById,
   getAllTalents,
   getMyTalents,
   getSingleTalent,
@@ -12,11 +13,12 @@ const router = express.Router();
 
 router
   .route("/talent")
-  .get(getAllTalents)
+  .get(isAuthenticated, authorizeRoles("admin"), getAllTalents)
   .post(isAuthenticated, singleUploadS3, createTalent);
 
-router.route("/talent/my-talents").get(getMyTalents);
+router.route("/talent/my-talents").get(isAuthenticated, getMyTalents);
 
 router.route("/talent/:id").get(getSingleTalent);
+router.route("/talent/delete/:id").delete(isAuthenticated, deleteTalentById);
 
 export default router;
