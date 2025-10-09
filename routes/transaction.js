@@ -9,7 +9,4 @@ const router = express.Router();
 router.route("/refral/summary").get(isAuthenticated,getReferralSummary);
 
 
-
-
-
 export default router;
