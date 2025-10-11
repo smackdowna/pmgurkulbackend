@@ -16,9 +16,11 @@ import {
   removeFromPlaylist,
   resetPassword,
   sendOTP,
+  suspendUser,
   updateUserDetails,
   updateUserDetailsAdmin,
   verifyOTP,
+  withdrawSuspension,
 } from "../controllers/userControllers.js";
 import { multipleUpload } from "../middlewares/multiplemulter.js";
 
@@ -64,6 +66,18 @@ router
   .route("/all/user")
   .get(isAuthenticated, authorizeRoles("admin"), getAllUser);
 
+// Suspend user
+router
+  .route("/user/suspend")
+  .put(isAuthenticated, authorizeRoles("admin"), suspendUser);
+
+// Withdraw suspension
+router
+  .route("/user/withdraw-suspension")
+  .put(isAuthenticated, authorizeRoles("admin"), withdrawSuspension);
+
+
+  
 //get single user--Admin
 
 router

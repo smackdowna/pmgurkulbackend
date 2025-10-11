@@ -923,3 +923,93 @@ export const getUserPurchasedCourses = catchAsyncError(
   }
 );
 
+
+export const suspendUser = catchAsyncError(async (req, res, next) => {
+  const { userId, suspensionReason } = req.body;
+
+  if (!userId || !suspensionReason) {
+    return next(
+      new ErrorHandler("Please provide userId and suspensionReason", 400)
+    );
+  }
+
+  // Find the user
+  const user = await User.findById(userId);
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+
+  // Update user status and save reason
+  user.status = "suspended";
+  user.suspensionReason = suspensionReason;
+  await user.save({ validateBeforeSave: false });
+
+  // Prepare email
+  const message = `Dear ${user.full_name},
+
+We wanted to inform you that your PMGURUKKUL account has been temporarily suspended due to the following reason:
+
+"${suspensionReason}"
+
+During this suspension period, you will not be able to access your account. If you believe this is a mistake or have any questions, please contact our support team for assistance.
+
+Thank you for your understanding.
+
+Best regards,
+PMGURUKKUL Team`;
+
+  try {
+    await sendEmail(user.email, "Account Suspension Notice - PMGURUKKUL", message);
+
+    res.status(200).json({
+      success: true,
+      message: `User ${user.full_name} has been suspended and email sent.`,
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
+export const withdrawSuspension = catchAsyncError(async (req, res, next) => {
+  const { userId } = req.body;
+
+  if (!userId) {
+    return next(new ErrorHandler("Please provide userId", 400));
+  }
+
+  // Find user
+  const user = await User.findById(userId);
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+
+  if (user.status !== "suspended") {
+    return next(new ErrorHandler("User is not currently suspended", 400));
+  }
+
+  // Update status to active and remove suspension reason
+  user.status = "active";
+  user.suspensionReason = null;
+  await user.save({ validateBeforeSave: false });
+
+  // Prepare email
+  const message = `Dear ${user.full_name},
+
+We are pleased to inform you that your PMGURUKKUL account suspension has been withdrawn, and your account is now active. You can access all platform features as usual.
+
+Thank you for your patience and understanding.
+
+Best regards,
+PMGURUKKUL Team`;
+
+  try {
+    await sendEmail(user.email, "Account Reactivated - PMGURUKKUL", message);
+
+    res.status(200).json({
+      success: true,
+      message: `User ${user.full_name} has been reactivated and email sent.`,
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+});

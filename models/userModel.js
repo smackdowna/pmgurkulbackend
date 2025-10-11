@@ -188,7 +188,18 @@ const schema = new mongoose.Schema({
       },
     },
   ],
-
+  status: {
+    type: String,
+    required: false,
+    enum: {
+      values: ["suspended", "active"],
+    },
+  },
+  suspensionReason : {
+    type: String,
+    required: false,
+    default: null,
+  },
   createdAt: {
     type: Date,
     default: Date.now(),
