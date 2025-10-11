@@ -10,9 +10,14 @@ const schema = new mongoose.Schema({
     required: [true, "Please enter the reviewer's designation"],
   },
   testimonialType: {
-    type: ["Video", "Text"],
-    required: [true, "Please select a testimonial type"],
+  type: String,
+  required: [true, "Please select a testimonial type"],
+  enum: {
+    values: ["Video", "Text"],
+    message: "Testimonial type must be either 'Video' or 'Text'",
   },
+},
+
   review: {
     type: String,
     required: false,
@@ -38,11 +43,11 @@ const schema = new mongoose.Schema({
   video: {
     public_id: {
       type: String,
-      required: true,
+      required: false,
     },
     url: {
       type: String,
-      required: true,
+      required: false,
     },
   },
   createdAt: {
