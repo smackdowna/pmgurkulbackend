@@ -22,6 +22,7 @@ export const createCourse = catchAsyncError(async (req, res, next) => {
     basePrice,
     discountedPrice,
     totalDuration,
+    referBonus,
   } = req.body;
 
   if (
@@ -33,7 +34,8 @@ export const createCourse = catchAsyncError(async (req, res, next) => {
     !author ||
     !basePrice ||
     !discountedPrice ||
-    !totalDuration
+    !totalDuration ||
+    !referBonus
   )
     return next(new ErrorHandler("Please Enter all fields", 400));
 
@@ -52,6 +54,7 @@ export const createCourse = catchAsyncError(async (req, res, next) => {
     basePrice,
     discountedPrice,
     totalDuration,
+    referBonus,
     poster: {
       public_id: mycloud.public_id,
       url: mycloud.secure_url,

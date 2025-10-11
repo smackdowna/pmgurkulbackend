@@ -91,6 +91,11 @@ const schema = new mongoose.Schema({
     required: [true, "Please enter course discountedPrice"],
     default: 0,
   },
+  referBonus: {
+    type: Number,
+    required: [true, "Please enter course refer bonus"],
+    default: 0,
+  },
   forum: [forumMessageSchema],
   createdAt: {
     type: Date,
