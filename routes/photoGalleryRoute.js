@@ -17,7 +17,7 @@ router
 router.route("/").get(getAllPhotos);
 router.route("/:id").get(getSinglePhotoById);
 router
-  .route("/:id")
+  .route("/delete/:id")
   .delete(isAuthenticated, authorizeRoles("admin"), deletePhoto);
 
 export default router;

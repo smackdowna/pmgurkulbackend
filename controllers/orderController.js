@@ -67,14 +67,21 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
   const gstAmount = (discountedPriceTotal * 18) / 100;
   totalPrice = discountedPriceTotal + gstAmount;
 
-  // Commission calculation (50% of the total discounted price)
-  const commission = (discountedPriceTotal * 50) / 100;
+  let totalCommission = 0;
+  let totalTDS = 0;
 
-  // TDS calculation (5% of commission)
-  const tds = (commission * 5) / 100;
+  // Calculate commission per course
+  for (const id of courseId) {
+    const course = await Course.findById(id);
+    const bonusPercentage = course.referBonus || 0; // default 0 if not set
 
-  // Amount credited to referrer (after TDS deduction)
-  const amountCredited = commission - tds;
+    const courseCommission = (course.discountedPrice * bonusPercentage) / 100;
+    const courseTDS = (courseCommission * 5) / 100; // 5% TDS
+    totalCommission += courseCommission;
+    totalTDS += courseTDS;
+  }
+
+  const amountCredited = totalCommission - totalTDS;
 
   // Create the order
   const order = await Order.create({
