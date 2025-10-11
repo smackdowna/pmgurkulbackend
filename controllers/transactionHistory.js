@@ -79,3 +79,74 @@ export const getReferralSummary = catchAsyncError(async (req, res, next) => {
     },
   });
 });
+
+export const getReferralLeaderboard = catchAsyncError(
+  async (req, res, next) => {
+    // 1. Get all users
+    const allUsers = await User.find(
+      {},
+      "full_name email mobileNumber refralCode createdAt referredBy"
+    );
+
+    if (!allUsers || allUsers.length === 0) {
+      return next(new ErrorHandler("No users found", 404));
+    }
+
+    // 2. Prepare a leaderboard array
+    const leaderboardData = [];
+
+    // 3. Loop through each user and calculate their total referral earnings
+    for (const user of allUsers) {
+      const referredUsers = await User.find({ referredBy: user._id });
+
+      if (referredUsers.length === 0) {
+        leaderboardData.push({
+          userId: user._id,
+          name: user.full_name,
+          email: user.email,
+          mobileNumber: user.mobileNumber,
+          totalEarnings: 0,
+          totalReferredUsers: 0,
+          durationOnPlatform:
+            moment().diff(moment(user.createdAt), "days") + " days",
+        });
+        continue;
+      }
+
+      const referredUserIds = referredUsers.map((u) => u._id);
+      const orders = await Order.find({ user: { $in: referredUserIds } });
+
+      const totalEarnings = orders.reduce(
+        (acc, order) => acc + (order.amountCredited || 0),
+        0
+      );
+
+      leaderboardData.push({
+        userId: user._id,
+        name: user.full_name,
+        email: user.email,
+        mobileNumber: user.mobileNumber,
+        totalEarnings,
+        totalReferredUsers: referredUsers.length,
+        durationOnPlatform:
+          moment().diff(moment(user.createdAt), "days") + " days",
+      });
+    }
+
+    // 4. Sort by total earnings descending
+    leaderboardData.sort((a, b) => b.totalEarnings - a.totalEarnings);
+
+    // 5. Assign ranks
+    leaderboardData.forEach((user, index) => {
+      user.rank = index + 1;
+    });
+
+    // 6. Send response
+    res.status(200).json({
+      success: true,
+      message: "Referral leaderboard fetched successfully",
+      totalUsers: leaderboardData.length,
+      leaderboard: leaderboardData,
+    });
+  }
+);
