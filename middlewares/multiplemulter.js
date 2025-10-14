@@ -8,4 +8,5 @@ export const multipleUpload = multer({ storage }).fields([
   { name: "docFrontImageFile", maxCount: 1 },
   { name: "docBackImageFile", maxCount: 1 },
   { name: "passbookImageFile", maxCount: 1 }, // Add this line for passbook image
+  { name: "profilePicture", maxCount: 1 }, // Add this line for passbook image
 ]);

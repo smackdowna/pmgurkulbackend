@@ -156,6 +156,8 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     gstCompanyName,
   } = req.body;
 
+  const { profilePicture } = req.files || {};
+
   if (!mobileNumber)
     return next(new ErrorHandler("Mobile number is required", 400));
 
@@ -176,6 +178,22 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     return next(
       new ErrorHandler("Referral Code is required for registration", 400)
     );
+
+  // if (profilePicture && profilePicture[0]) {
+  //   if (user.profilePicture?.public_id) {
+  //     await imagekit.deleteFile(user.profilePicture.public_id);
+  //   }
+
+  //   const profilePictureUploadResponse = await imagekit.upload({
+  //     file: profilePicture[0].buffer,
+  //     fileName: `profile-${full_name}-${Date.now()}.jpg`,
+  //   });
+
+  //   user.profilePicture = {
+  //     public_id: profilePictureUploadResponse.fileId,
+  //     url: profilePictureUploadResponse.url,
+  //   };
+  // }
 
   if (unverifiedUser) {
     if (!unverifiedUser.refralCode) {
@@ -198,7 +216,8 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     unverifiedUser.addline1 = addline1 || unverifiedUser.addline1;
     unverifiedUser.addline2 = addline2 || unverifiedUser.addline2;
     unverifiedUser.gstNumber = gstNumber || unverifiedUser.gstNumber;
-    unverifiedUser.gstCompanyName = gstCompanyName || unverifiedUser.gstCompanyName;
+    unverifiedUser.gstCompanyName =
+      gstCompanyName || unverifiedUser.gstCompanyName;
     unverifiedUser.verified = true;
 
     if (refralCode) {
@@ -206,6 +225,18 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
       if (!referredUser)
         return next(new ErrorHandler("Invalid referral code", 400));
       unverifiedUser.referredBy = referredUser._id;
+    }
+
+    if (profilePicture && profilePicture[0]) {
+      const profilePictureUploadResponse = await imagekit.upload({
+        file: profilePicture[0].buffer,
+        fileName: `profile-${full_name}.jpg`,
+      });
+
+      unverifiedUser.profilePicture = {
+        public_id: profilePictureUploadResponse.fileId,
+        url: profilePictureUploadResponse.url,
+      };
     }
 
     await unverifiedUser.save();
@@ -268,7 +299,7 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     addline2,
     gstNumber,
     gstCompanyName,
-    createdAt: new Date.now(),
+    createdAt: new Date(),
     // userId,
   });
 
@@ -923,7 +954,6 @@ export const getUserPurchasedCourses = catchAsyncError(
   }
 );
 
-
 export const suspendUser = catchAsyncError(async (req, res, next) => {
   const { userId, suspensionReason } = req.body;
 
@@ -959,7 +989,11 @@ Best regards,
 PMGURUKKUL Team`;
 
   try {
-    await sendEmail(user.email, "Account Suspension Notice - PMGURUKKUL", message);
+    await sendEmail(
+      user.email,
+      "Account Suspension Notice - PMGURUKKUL",
+      message
+    );
 
     res.status(200).json({
       success: true,

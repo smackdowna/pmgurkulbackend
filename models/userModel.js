@@ -126,6 +126,14 @@ const schema = new mongoose.Schema({
       type: String,
     },
   },
+  profilePicture: {
+    public_id: {
+      type: String,
+    },
+    url: {
+      type: String,
+    },
+  },
   refralCode: {
     type: String,
   },
