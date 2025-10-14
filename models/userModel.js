@@ -56,6 +56,7 @@ const schema = new mongoose.Schema({
   panCard: {
     panNumber: {
       type: String,
+      default: null,
     },
     panImage: {
       public_id: {

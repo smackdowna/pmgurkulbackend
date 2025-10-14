@@ -322,14 +322,14 @@ export const loginUser = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("User not found!", 401));
   }
 
-  // if (user.verified === false) {
-  //   return next(
-  //     new ErrorHandler(
-  //       "You are not verified, please sign up again to complete the verification process",
-  //       404
-  //     )
-  //   );
-  // }
+  if (user?.status === "suspended") {
+    return next(
+      new ErrorHandler(
+        "Your account has been suspended. Please contact support for further assistance.",
+        404
+      )
+    );
+  }
 
   const isPasswordMatched = await user.comparePassword(password);
 
@@ -512,6 +512,7 @@ export const updateUserDetails = catchAsyncError(async (req, res, next) => {
     docFrontImageFile,
     docBackImageFile,
     passbookImageFile,
+    profilePicture,
   } = req.files || {};
 
   // Ensure the user is logged in
@@ -629,6 +630,22 @@ export const updateUserDetails = catchAsyncError(async (req, res, next) => {
     user.passbookImage = {
       public_id: passbookUploadResponse.fileId,
       url: passbookUploadResponse.url,
+    };
+  }
+
+  if (profilePicture && profilePicture[0]) {
+    if (user.profilePicture?.public_id) {
+      await imagekit.deleteFile(user.profilePicture.public_id);
+    }
+
+    const profilePictureUploadResponse = await imagekit.upload({
+      file: profilePicture[0].buffer,
+      fileName: `profile-${full_name}-${Date.now()}.jpg`,
+    });
+
+    user.profilePicture = {
+      public_id: profilePictureUploadResponse.fileId,
+      url: profilePictureUploadResponse.url,
     };
   }
 
