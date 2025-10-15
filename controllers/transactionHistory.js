@@ -84,8 +84,8 @@ export const getReferralLeaderboard = catchAsyncError(
   async (req, res, next) => {
     // 1. Get all users
     const allUsers = await User.find(
-      {},
-      "full_name email mobileNumber refralCode createdAt referredBy"
+      { role: { $ne: "admin" } },
+      "full_name email mobileNumber refralCode createdAt referredBy role"
     );
 
     if (!allUsers || allUsers.length === 0) {
