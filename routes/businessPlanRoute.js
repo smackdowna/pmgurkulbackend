@@ -6,6 +6,7 @@ import {
   getAllBusinessDocs,
   getSingleBusinessDocById,
   deleteBusinessPlanDoc,
+  updateBusinessPlanDoc,
 } from "../controllers/businessPlanController.js";
 
 const router = express.Router();
@@ -21,10 +22,10 @@ router
   .post(isAuthenticated, authorizeRoles("admin"), singleUploadS3, addBusinessPlanDoc)
   .get(isAuthenticated, authorizeRoles("admin"), getAllBusinessDocs);
 
-// Get Single Business Plan by ID
 router
   .route("/:id")
   .get(isAuthenticated, authorizeRoles("admin"), getSingleBusinessDocById)
+  .put(isAuthenticated, authorizeRoles("admin"), updateBusinessPlanDoc)
   .delete(isAuthenticated, authorizeRoles("admin"), deleteBusinessPlanDoc);
 
 export default router;
