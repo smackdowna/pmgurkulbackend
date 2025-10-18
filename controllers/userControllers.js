@@ -8,6 +8,7 @@ import { Course } from "../models/Course.js";
 import sendEmail from "../utils/sendEmail.js";
 import axios from "axios";
 import { Order } from "../models/OrderModel.js";
+import { BusinessPlan } from "../models/BusinessPlan.js";
 
 async function deleteUsersWithExpiredOTP() {
   try {
@@ -1107,20 +1108,30 @@ export const getUserDashboardStats = catchAsyncError(async (req, res, next) => {
       return { userId: u._id.toString(), earnings: uEarnings };
     })
   );
-
-  // Sort descending by earnings
   earningsArray.sort((a, b) => b.earnings - a.earnings);
   const rank = earningsArray.findIndex((u) => u.userId === userId) + 1;
 
-  res.status(200).json({
-    success: true,
-    stats: {
-      enrolledCourses,
-      totalReferrals,
-      totalEarnings,
-      rank,
-      totalOrders,
-      kycStatus,
-    },
-  });
+  // Fetch all business plan docs
+const businessDoc = await BusinessPlan.find()
+  .sort({ createdAt: -1 })
+  .limit(1)
+  .lean();
+
+// Get the first element if it exists, otherwise null
+const latestBusinessDoc = businessDoc[0] || null;
+
+res.status(200).json({
+  success: true,
+  stats: {
+    enrolledCourses,
+    totalReferrals,
+    totalEarnings,
+    rank,
+    totalOrders,
+    kycStatus,
+    businessPlan: latestBusinessDoc,
+  },
 });
+
+});
+
