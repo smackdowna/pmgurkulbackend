@@ -7,6 +7,7 @@ import crypto from "crypto";
 import { Course } from "../models/Course.js";
 import sendEmail from "../utils/sendEmail.js";
 import axios from "axios";
+import { Order } from "../models/OrderModel.js";
 
 async function deleteUsersWithExpiredOTP() {
   try {
@@ -1063,4 +1064,63 @@ PMGURUKKUL Team`;
   } catch (error) {
     return next(new ErrorHandler(error.message, 500));
   }
+});
+
+
+export const getUserDashboardStats = catchAsyncError(async (req, res, next) => {
+  const userId = req.user.id;
+
+  // Fetch current user
+  const user = await User.findById(userId);
+  if (!user) return next(new ErrorHandler("User not found", 404));
+
+  // Enrolled Courses
+  const enrolledCourses = user.purchasedCourses?.length || 0;
+
+  // Total Orders
+  const totalOrders = await Order.countDocuments({ user: userId });
+
+  // KYC Status
+  const kycStatus = user.kyc_status || "Pending";
+
+  // Referrals
+  const referredUsers = await User.find({ referredBy: userId });
+  const totalReferrals = referredUsers.length;
+
+  // Earnings from referred users
+  const referredUserIds = referredUsers.map((u) => u._id);
+  const referralOrders = await Order.find({ user: { $in: referredUserIds } });
+
+  let totalEarnings = 0;
+  referralOrders.forEach((order) => {
+    totalEarnings += order.amountCredited || 0;
+  });
+
+  // Rank based on totalEarnings compared to all users
+  const allUsers = await User.find().lean();
+  const earningsArray = await Promise.all(
+    allUsers.map(async (u) => {
+      const uReferredUsers = await User.find({ referredBy: u._id });
+      const uReferredIds = uReferredUsers.map((r) => r._id);
+      const uOrders = await Order.find({ user: { $in: uReferredIds } });
+      const uEarnings = uOrders.reduce((acc, o) => acc + (o.amountCredited || 0), 0);
+      return { userId: u._id.toString(), earnings: uEarnings };
+    })
+  );
+
+  // Sort descending by earnings
+  earningsArray.sort((a, b) => b.earnings - a.earnings);
+  const rank = earningsArray.findIndex((u) => u.userId === userId) + 1;
+
+  res.status(200).json({
+    success: true,
+    stats: {
+      enrolledCourses,
+      totalReferrals,
+      totalEarnings,
+      rank,
+      totalOrders,
+      kycStatus,
+    },
+  });
 });

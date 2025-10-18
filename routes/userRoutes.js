@@ -7,6 +7,7 @@ import {
   getAllUser,
   getmyProfile,
   getSingleUser,
+  getUserDashboardStats,
   getUserPurchasedCourses,
   getUsersWithPendingKYC,
   loginUser,
@@ -46,6 +47,9 @@ router.route("/password/reset/:token").put(resetPassword);
 
 //get my profile
 router.route("/myprofile").get(isAuthenticated, getmyProfile);
+
+// Gte dashboard stats
+router.route("/user/stats").get(isAuthenticated, getUserDashboardStats); //yhyhuioyi9y
 
 //logout
 router.route("/logout").get(logout);
