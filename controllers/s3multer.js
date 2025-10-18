@@ -23,16 +23,26 @@ const upload = multer({
     fileSize: 1024 * 1024 * 7000, // 7GB
   },
   fileFilter(req, file, cb) {
-    if (
-      file.mimetype === "video/mp4" ||
-      file.mimetype === "video/mkv" ||
-      file.mimetype === "video/webm"
-    ) {
+    const allowedMimeTypes = [
+      "video/mp4",
+      "video/mkv",
+      "video/webm",
+      "application/pdf",
+      "application/vnd.ms-powerpoint",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+
+    if (allowedMimeTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Only video files are allowed!"));
+      cb(new Error("Only video, pdf, ppt, doc, and excel files are allowed!"));
     }
   },
 });
+
 
 export const singleUploadS3 = upload.single("file");
