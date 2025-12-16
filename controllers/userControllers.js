@@ -1067,7 +1067,6 @@ PMGURUKKUL Team`;
   }
 });
 
-
 export const getUserDashboardStats = catchAsyncError(async (req, res, next) => {
   const userId = req.user.id;
 
@@ -1104,7 +1103,10 @@ export const getUserDashboardStats = catchAsyncError(async (req, res, next) => {
       const uReferredUsers = await User.find({ referredBy: u._id });
       const uReferredIds = uReferredUsers.map((r) => r._id);
       const uOrders = await Order.find({ user: { $in: uReferredIds } });
-      const uEarnings = uOrders.reduce((acc, o) => acc + (o.amountCredited || 0), 0);
+      const uEarnings = uOrders.reduce(
+        (acc, o) => acc + (o.amountCredited || 0),
+        0
+      );
       return { userId: u._id.toString(), earnings: uEarnings };
     })
   );
@@ -1112,26 +1114,24 @@ export const getUserDashboardStats = catchAsyncError(async (req, res, next) => {
   const rank = earningsArray.findIndex((u) => u.userId === userId) + 1;
 
   // Fetch all business plan docs
-const businessDoc = await BusinessPlan.find()
-  .sort({ createdAt: -1 })
-  .limit(1)
-  .lean();
+  const businessDoc = await BusinessPlan.find()
+    .sort({ createdAt: -1 })
+    .limit(1)
+    .lean();
 
-// Get the first element if it exists, otherwise null
-const latestBusinessDoc = businessDoc[0] || null;
+  // Get the first element if it exists, otherwise null
+  const latestBusinessDoc = businessDoc[0] || null;
 
-res.status(200).json({
-  success: true,
-  stats: {
-    enrolledCourses,
-    totalReferrals,
-    totalEarnings,
-    rank,
-    totalOrders,
-    kycStatus,
-    businessPlan: latestBusinessDoc,
-  },
+  res.status(200).json({
+    success: true,
+    stats: {
+      enrolledCourses,
+      totalReferrals,
+      totalEarnings,
+      rank,
+      totalOrders,
+      kycStatus,
+      businessPlan: latestBusinessDoc,
+    },
+  });
 });
-
-});
-

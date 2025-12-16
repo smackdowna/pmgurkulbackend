@@ -1,6 +1,5 @@
 import express from "express";
 import { isAuthenticated, authorizeRoles } from "../middlewares/auth.js";
-import { singleUploadS3 } from "../controllers/s3multer.js";
 import {
   addBusinessPlanDoc,
   getAllBusinessDocs,
@@ -14,12 +13,12 @@ const router = express.Router();
 // Upload Business Plan Document
 router
   .route("/upload")
-  .post(isAuthenticated, authorizeRoles("admin"), singleUploadS3, addBusinessPlanDoc)
+  .post(isAuthenticated, authorizeRoles("admin"), addBusinessPlanDoc)
 // Upload Business Plan Document
 
 router
   .route("/")
-  .post(isAuthenticated, authorizeRoles("admin"), singleUploadS3, addBusinessPlanDoc)
+  .post(isAuthenticated, authorizeRoles("admin"), addBusinessPlanDoc)
   .get(isAuthenticated, authorizeRoles("admin"), getAllBusinessDocs);
 
 router

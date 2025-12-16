@@ -3,7 +3,7 @@ import { Order } from "../models/OrderModel.js";
 import { catchAsyncError } from "../middlewares/catchAsyncErrors.js";
 import moment from "moment";
 
-//refral summary
+//referral summary
 export const getReferralSummary = catchAsyncError(async (req, res, next) => {
   const userId = req.user.id;
 

@@ -10,15 +10,9 @@ const schema = new mongoose.Schema(
       type: String,
       required: [true, "Please enter a short overview of business plan"],
     },
-    file: {
-      public_id: {
-        type: String,
-        required: true,
-      },
-      url: {
-        type: String,
-        required: true,
-      },
+    fileUrl: {
+      type: String,
+      required: [true, "Please enter file url"],
     },
   },
   {
