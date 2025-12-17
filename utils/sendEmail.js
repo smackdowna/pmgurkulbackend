@@ -1,9 +1,8 @@
 import nodeMailer from "nodemailer";
 
-// Remove the incorrect syntax from the import statement
 const createTransport = nodeMailer.createTransport;
 
-const sendEmail = async (to, subject, text) => {
+const sendEmail = async (to, subject, text, html = null) => {
   const transporter = createTransport({
     host: process.env.SMTP_HOST,
     port: process.env.SMTP_PORT,
@@ -13,11 +12,22 @@ const sendEmail = async (to, subject, text) => {
     },
   });
 
-  await transporter.sendMail({
+  const mailOptions = {
     to,
     subject,
-    text,
-  });
+  };
+
+  // If html is provided, send as HTML email
+  if (html) {
+    mailOptions.html = html;
+    // Also include text version for email clients that don't support HTML
+    mailOptions.text = text || "Please view this email in an HTML-enabled email client.";
+  } else {
+    // If no html, send as plain text
+    mailOptions.text = text;
+  }
+
+  await transporter.sendMail(mailOptions);
 };
 
 export default sendEmail;

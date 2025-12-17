@@ -91,8 +91,8 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
     totalPrice,
     discountedPrice: discountedPriceTotal,
     gst: 18,
-    commission,
-    tds,
+    commission: totalCommission,
+    tds: totalTDS,
     amountCredited,
     paymentId,
   });
@@ -117,8 +117,8 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
     totalPrice,
     discountedPrice: discountedPriceTotal,
     gst: 18,
-    commission,
-    tds,
+    commission: totalCommission,
+    tds: totalTDS,
     amountCredited,
     paymentId,
   });
@@ -138,23 +138,244 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
   const resolvedCourseTitles = await Promise.all(courseTitles);
   const courseTitleString = resolvedCourseTitles.join(", ");
 
-  const emailMessage = `Dear User ${user.full_name},
-Thank you for purchasing ${courseTitleString} from PMGURUKKUL! 🎉
-
-Your enrollment has been successfully processed. You can now access the course from your account dashboard.
-
-For your convenience, you can download the invoice from the "My Orders" section in your dashboard.
-
-If you have any questions or need assistance, feel free to reach out to our support team.
-
-Happy Learning!
-Best Regards,
-PMGURUKKUL Team`;
+  const emailMessage = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: #051539;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 40px;
+        }
+        .greeting {
+            color: #051539;
+            font-size: 20px;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        .invoice-box {
+            background: #f8f9ff;
+            border-left: 4px solid #0073DF;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .invoice-title {
+            color: #051539;
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+        .invoice-title:before {
+            content: "📋";
+            margin-right: 10px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 12px 0;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+        .detail-label {
+            color: #666;
+            font-weight: 500;
+        }
+        .detail-value {
+            color: #051539;
+            font-weight: 600;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            padding: 20px;
+            background: #051539;
+            color: white;
+            border-radius: 8px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .note {
+            background: #e8f4ff;
+            border: 1px solid #0073DF;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 8px;
+            text-align: center;
+            color: #051539;
+        }
+        .note-icon {
+            color: #0073DF;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #051539, #0073DF);
+            color: white;
+            padding: 16px 40px;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(5, 21, 57, 0.2);
+        }
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(5, 21, 57, 0.3);
+        }
+        .wishes {
+            text-align: center;
+            color: #051539;
+            font-size: 18px;
+            margin: 30px 0;
+            padding: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+        .wishes h3 {
+            color: #0073DF;
+            margin-bottom: 15px;
+        }
+        .footer {
+            background: #051539;
+            color: white;
+            text-align: center;
+            padding: 25px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .highlight {
+            color: #0073DF;
+            font-weight: 600;
+        }
+        .payment-id {
+            background: #0073DF;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Enrollment Successful!</h1>
+            <p>PMGURUKKUL - Your Learning Journey Begins</p>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">
+                Dear ${user.full_name},
+            </div>
+            
+            <p>Thank you for choosing PMGURUKKUL! We're thrilled to welcome you to our learning community. Your enrollment has been successfully processed and you can now access your course materials immediately.</p>
+            
+            <div class="invoice-box">
+                <div class="invoice-title">
+                    Order Invoice
+                    <span class="payment-id">Payment ID: ${paymentId}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Courses Purchased:</span>
+                    <span class="detail-value">${courseTitleString}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Subtotal:</span>
+                    <span class="detail-value">₹${discountedPriceTotal.toFixed(
+                      2
+                    )}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">GST (18%):</span>
+                    <span class="detail-value">₹${gstAmount.toFixed(2)}</span>
+                </div>
+                
+                <div class="total-row">
+                    <span>Total Amount Paid:</span>
+                    <span>₹${totalPrice.toFixed(2)}</span>
+                </div>
+            </div>
+            
+            <div class="note">
+                <div class="note-icon">💡</div>
+                <p><strong>Important Note:</strong> You can download your invoice anytime from your dashboard. All your invoices are securely stored for future reference.</p>
+            </div>
+            
+            <div class="wishes">
+                <h3>🎯 Start Your Learning Journey</h3>
+                <p>Your courses are now available in your dashboard. We recommend starting as soon as possible to make the most of your learning experience.</p>
+                <p>If you need any assistance, our support team is just a message away!</p>
+            </div>
+            
+            <p style="color: #051539; font-weight: 600;">Access your courses here: <span class="highlight">Dashboard → My Courses</span></p>
+            <p style="color: #666; font-size: 14px; margin-top: 10px;">Order Date: ${new Date().toLocaleDateString(
+              "en-IN",
+              {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              }
+            )}</p>
+        </div>
+        
+        <div class="footer">
+            <p style="margin: 0;">Happy Learning! 🌟</p>
+            <p style="margin: 10px 0 0 0; font-weight: 600;">Best Regards,<br>The PMGURUKKUL Team</p>
+            <p style="margin: 15px 0 0 0; font-size: 12px; opacity: 0.8;">"Empowering Learners, Building Futures"</p>
+        </div>
+    </div>
+</body>
+</html>
+`;
 
   await sendEmail(
-    user.email,
-    `Course Purchase Confirmation ${courseTitleString}`,
-    emailMessage
+    user.email, // First parameter: to
+    `Course Purchase Confirmation ${courseTitleString}`, // Second parameter: subject
+    `You have successfully purchased the course.`, // Third parameter: text
+    emailMessage // Fourth parameter: html
   );
 
   // Send response with order details
@@ -209,7 +430,6 @@ export const getSingleOrder = catchAsyncError(async (req, res, next) => {
   });
 });
 
-
 // Cancel order by ID
 export const cancelOrder = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
@@ -242,4 +462,3 @@ export const cancelOrder = catchAsyncError(async (req, res, next) => {
     order,
   });
 });
-
