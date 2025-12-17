@@ -45,6 +45,7 @@ import testimonial from "./routes/testimonialRoute.js";
 import photoGallery from "./routes/photoGalleryRoute.js";
 import businessPlan from "./routes/businessPlanRoute.js";
 import referralNetwork from "./routes/referralNetworkRoute.js";
+import courseBundle from "./routes/courseBundleRoute.js";
 
 app.use("/api/v1", user);
 app.use("/api/v1", course);
@@ -60,6 +61,7 @@ app.use("/api/v1/testimonial", testimonial);
 app.use("/api/v1/photoGallery", photoGallery);
 app.use("/api/v1/businessPlan", businessPlan);
 app.use("/api/v1/referralNetwork", referralNetwork);
+app.use("/api/v1/courseBundle", courseBundle);
 
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
