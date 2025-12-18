@@ -5,7 +5,8 @@ import getDataUri from "../utils/dataUri.js";
 import { CourseBundle } from "../models/CourseBundle.js";
 
 export const createCourseBundle = catchAsyncError(async (req, res, next) => {
-  let { title, description, price, courseIds } = req.body;
+  let { title, description, basePrice, discountedPrice, courseIds, duration } =
+    req.body;
 
   // 👇 IMPORTANT: Parse courseIds if it comes as string
   if (typeof courseIds === "string") {
@@ -19,7 +20,9 @@ export const createCourseBundle = catchAsyncError(async (req, res, next) => {
   if (
     !title ||
     !description ||
-    !price ||
+    !basePrice ||
+    !discountedPrice ||
+    duration ||
     !Array.isArray(courseIds) ||
     !courseIds.length
   ) {
@@ -41,9 +44,11 @@ export const createCourseBundle = catchAsyncError(async (req, res, next) => {
   const bundle = await CourseBundle.create({
     title,
     description,
-    price,
+    basePrice,
+    discountedPrice,
     courseIds,
     thumbnail,
+    duration,
   });
 
   res.status(201).json({
@@ -65,7 +70,10 @@ export const getAllCourseBundles = catchAsyncError(async (req, res, next) => {
     };
   }
 
-  const bundles = await CourseBundle.find(query);
+  const bundles = await CourseBundle.find(query).populate({
+    path: "courseIds",
+    select: "title poster basePrice discountedPrice",
+  });
 
   res.status(200).json({
     success: true,
@@ -89,7 +97,14 @@ export const getSingleCourseBundleById = catchAsyncError(
 );
 
 export const updateCourseBundle = catchAsyncError(async (req, res, next) => {
-  const { title, description, price, courseIds } = req.body;
+  const {
+    title,
+    description,
+    basePrice,
+    discountedPrice,
+    courseIds,
+    duration,
+  } = req.body;
   const { id } = req.params;
 
   const bundle = await CourseBundle.findById(id);
@@ -97,7 +112,7 @@ export const updateCourseBundle = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Course bundle not found", 404));
   }
 
-  // Replace thumbnail if new file is uploaded
+  // Handle thumbnail update
   if (req.file) {
     if (bundle.thumbnail?.public_id) {
       await cloudinary.v2.uploader.destroy(bundle.thumbnail.public_id);
@@ -112,10 +127,16 @@ export const updateCourseBundle = catchAsyncError(async (req, res, next) => {
     };
   }
 
+  if (courseIds) {
+    bundle.courseIds =
+      typeof courseIds === "string" ? JSON.parse(courseIds) : courseIds;
+  }
+
   bundle.title = title ?? bundle.title;
   bundle.description = description ?? bundle.description;
-  bundle.price = price ?? bundle.price;
-  bundle.courseIds = courseIds ?? bundle.courseIds;
+  bundle.basePrice = basePrice ?? bundle.basePrice;
+  bundle.discountedPrice = discountedPrice ?? bundle.discountedPrice;
+  bundle.duration = duration ?? bundle.duration;
 
   await bundle.save();
 

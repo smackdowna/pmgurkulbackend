@@ -17,9 +17,17 @@ const courseBundleSchema = new mongoose.Schema(
         required: true,
       },
     ],
-    price: {
+    basePrice: {
       type: Number,
-      required: [true, "Please enter bundle price"],
+      required: [true, "Please enter bundle base price"],
+    },
+    discountedPrice: {
+      type: Number,
+      required: [true, "Please enter bundle base price"],
+    },
+    duration : {
+      type: Number,
+      required: [true, "Please enter bundle duration"],
     },
     thumbnail: {
       public_id: {

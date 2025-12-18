@@ -33,7 +33,7 @@ router
 
 // Delete course bundle
 router
-  .route("delete//:id")
+  .route("/delete/:id")
   .delete(isAuthenticated, authorizeRoles("admin"), deleteCourseBundle);
 
 // Get all course bundles
