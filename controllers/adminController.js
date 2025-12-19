@@ -1,6 +1,7 @@
 import { catchAsyncError } from "../middlewares/catchAsyncErrors.js";
 import { Course } from "../models/Course.js";
 import { User } from "../models/userModel.js";
+import ErrorHandler from "../utils/errorHandler.js";
 import { Order } from "./../models/OrderModel.js";
 
 export const getAdminStats = catchAsyncError(async (req, res, next) => {
@@ -50,7 +51,10 @@ export const assignPagesToUser = catchAsyncError(
       return next(new ErrorHandler("User not found", 404));
     }
 
-    user.assignedPages = pages;
+    const currentPages = user.assignedPages || [];
+    const updatedPages = Array.from(new Set([...currentPages, ...pages]));
+
+    user.assignedPages = updatedPages;
 
     await user.save({ validateBeforeSave: true });
 

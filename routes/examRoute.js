@@ -1,13 +1,14 @@
 import express from "express";
 import { createExam, getCourseQuestions, updateExam } from "../controllers/examController.js";
-import { authorizeRoles, isAuthenticated } from "../middlewares/auth.js";
+import { isAuthenticated } from "../middlewares/auth.js";
+import { authorizeRoute } from "../middlewares/authorizeRoute.js";
 
 const router = express.Router(); 
 
 //Add questions --Admin
 router
   .route("/exam/add-questions")
-  .post(isAuthenticated, authorizeRoles("admin"), createExam);
+  .post(isAuthenticated, authorizeRoute(), createExam);
 
 router
   .route("/exam/questions/:courseId")
@@ -15,13 +16,13 @@ router
 
 router
   .route("/exam/questions/:examId")
-  .put(isAuthenticated, authorizeRoles("admin"), updateExam);
+  .put(isAuthenticated, authorizeRoute(), updateExam);
 
 //   router
 //   .route("/courses/:courseId/forum")
 //   .get(getCourseLectures)
-//   .put(isAuthenticated, authorizeRoles("admin"), singleUploadS3, addLectures)
-//   .delete(isAuthenticated, authorizeRoles("admin"), deleteCourse);
+//   .put(isAuthenticated, authorizeRoute(), singleUploadS3, addLectures)
+//   .delete(isAuthenticated, authorizeRoute(), deleteCourse);
 
 
 export default router;

@@ -24,6 +24,7 @@ import {
   withdrawSuspension,
 } from "../controllers/userControllers.js";
 import { multipleUpload } from "../middlewares/multiplemulter.js";
+import { authorizeRoute } from "../middlewares/authorizeRoute.js";
 
 const router = express.Router();
 
@@ -68,17 +69,17 @@ router.route("/removeplaylist").put(isAuthenticated, removeFromPlaylist);
 //get all user--Admin
 router
   .route("/all/user")
-  .get(isAuthenticated, authorizeRoles("admin"), getAllUser);
+  .get(isAuthenticated, authorizeRoute(), getAllUser);
 
 // Suspend user
 router
   .route("/user/suspend")
-  .put(isAuthenticated, authorizeRoles("admin"), suspendUser);
+  .put(isAuthenticated, authorizeRoute(), suspendUser);
 
 // Withdraw suspension
 router
   .route("/user/withdraw-suspension")
-  .put(isAuthenticated, authorizeRoles("admin"), withdrawSuspension);
+  .put(isAuthenticated, authorizeRoute(), withdrawSuspension);
 
 
   
@@ -86,10 +87,10 @@ router
 
 router
   .route("/user/:id")
-  .get(isAuthenticated, authorizeRoles("admin"), getSingleUser)
+  .get(isAuthenticated, authorizeRoute(), getSingleUser)
   .put(
     isAuthenticated,
-    authorizeRoles("admin"),
+    authorizeRoute(),
     multipleUpload,
     updateUserDetailsAdmin
   );
@@ -97,16 +98,16 @@ router
 //get kyc status pending--Admin
 router
   .route("/user/kyc/pending")
-  .get(isAuthenticated, authorizeRoles("admin"), getUsersWithPendingKYC);
+  .get(isAuthenticated, authorizeRoute(), getUsersWithPendingKYC);
 
 //chnage kyc status--Admin
 router
   .route("/user/approve/:id")
-  .put(isAuthenticated, authorizeRoles("admin"), approveKYCStatus);
+  .put(isAuthenticated, authorizeRoute(), approveKYCStatus);
 
 router
   .route("/user/reject/:id")
-  .put(isAuthenticated, authorizeRoles("admin"), rejectKYCStatus);
+  .put(isAuthenticated, authorizeRoute(), rejectKYCStatus);
 
 router.route("/purchased/course").get(isAuthenticated, getUserPurchasedCourses);
 

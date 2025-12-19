@@ -1,5 +1,5 @@
 import express from "express";
-import { isAuthenticated, authorizeRoles } from "../middlewares/auth.js";
+import { isAuthenticated } from "../middlewares/auth.js";
 import {
   createCourseBundle,
   getAllCourseBundles,
@@ -8,6 +8,7 @@ import {
   deleteCourseBundle,
 } from "../controllers/courseBundleController.js";
 import singleUpload from "../middlewares/multer.js";
+import { authorizeRoute } from "../middlewares/authorizeRoute.js";
 
 const router = express.Router();
 
@@ -16,7 +17,7 @@ router
   .route("/create")
   .post(
     isAuthenticated,
-    authorizeRoles("admin"),
+    authorizeRoute(),
     singleUpload,
     createCourseBundle
   );
@@ -26,7 +27,7 @@ router
   .route("/update/:id")
   .put(
     isAuthenticated,
-    authorizeRoles("admin"),
+    authorizeRoute(),
     singleUpload,
     updateCourseBundle
   );
@@ -34,7 +35,7 @@ router
 // Delete course bundle
 router
   .route("/delete/:id")
-  .delete(isAuthenticated, authorizeRoles("admin"), deleteCourseBundle);
+  .delete(isAuthenticated, authorizeRoute(), deleteCourseBundle);
 
 // Get all course bundles
 router.route("/").get(getAllCourseBundles);

@@ -1,10 +1,11 @@
 import express from "express";
-import { authorizeRoles, isAuthenticated } from "../middlewares/auth.js";
+import { isAuthenticated } from "../middlewares/auth.js";
 import {
   generateCertificate,
   getAllCertificates,
   getStudentCertificates,
 } from "../controllers/certificateController.js";
+import { authorizeRoute } from "../middlewares/authorizeRoute.js";
 
 const router = express.Router();
 
@@ -14,6 +15,6 @@ router
   .post(isAuthenticated, generateCertificate);
 
 router.route("/certificate").get(isAuthenticated, getStudentCertificates);
-router.route("/certificate/all").get(isAuthenticated, authorizeRoles("admin"), getAllCertificates);
+router.route("/certificate/all").get(isAuthenticated, authorizeRoute(), getAllCertificates);
 
 export default router;

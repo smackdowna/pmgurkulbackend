@@ -1,22 +1,15 @@
-const jwt = require("jsonwebtoken");
-import ErrorHandler from "./../utils/errorHandler";
-import { catchAsyncError } from "./catchAsyncErrors";
-const routeAccessMap = require("../constants/routeAccessMap");
-const { User } = require("../models/userModel");
+import jwt from "jsonwebtoken";
+import { routeAccessMap } from "../constants/routeAccessMap.constants.js";
+import ErrorHandler from "./../utils/errorHandler.js";
+import { catchAsyncError } from "./catchAsyncErrors.js";
+import { User } from "../models/userModel.js";
 
-const authorizeRoute = () => {
+export const authorizeRoute = () => {
   return catchAsyncError(async (req, res, next) => {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader) {
+    const { token } = req.cookies;
+    if (!token) {
       return next(new ErrorHandler("You are not authorized to proceed!", 401));
     }
-
-    // Extract token
-    const token = authHeader.startsWith("Bearer ")
-      ? authHeader.split(" ")[1]
-      : authHeader;
-
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -25,9 +18,7 @@ const authorizeRoute = () => {
     }
 
     // Fetch user to get assignedPages and role
-    const user = await User.findById(decoded.userId).select(
-      "assignedPages role"
-    );
+    const user = await User.findById(decoded?._id).select("assignedPages role");
 
     if (!user) {
       return next(new ErrorHandler("User not found", 404));
@@ -39,7 +30,6 @@ const authorizeRoute = () => {
     // 👇 Construct and normalize current route
     let currentRoute =
       req.baseUrl + (req.route && req.route.path ? req.route.path : "");
-
     currentRoute = currentRoute
       .replace(/^\/api\/v[0-9]+/, "")
       .replace(/\/$/, "");
@@ -56,5 +46,3 @@ const authorizeRoute = () => {
     next();
   });
 };
-
-module.exports = authorizeRoute;

@@ -5,15 +5,16 @@ import {
   getSingleTestimonialById,
   deleteTestimonial,
 } from "../controllers/testimonialController.js";
-import { authorizeRoles, isAuthenticated } from "../middlewares/auth.js";
+import { isAuthenticated } from "../middlewares/auth.js";
 import multipleUpload from './../middlewares/multipleUpload.js';
+import { authorizeRoute } from "../middlewares/authorizeRoute.js";
 
 const router = express.Router();
 
 // Add testimonial — Admin only
 router.route("/add").post(
   isAuthenticated,
-  authorizeRoles("admin"),
+  authorizeRoute(),
   multipleUpload,
   addTestimonial
 );
@@ -27,6 +28,6 @@ router.route("/:id").get(getSingleTestimonialById);
 // Delete testimonial — Admin only
 router
   .route("/delete/:id")
-  .delete(isAuthenticated, authorizeRoles("admin"), deleteTestimonial);
+  .delete(isAuthenticated, authorizeRoute(), deleteTestimonial);
 
 export default router;
