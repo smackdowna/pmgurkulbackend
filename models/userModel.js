@@ -3,12 +3,8 @@ import jwt from "jsonwebtoken";
 import validator from "validator";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-import { type } from "os";
 
 const schema = new mongoose.Schema({
-  // userId: {
-  //   type: String,
-  // },
   full_name: {
     type: String,
   },
@@ -209,6 +205,10 @@ const schema = new mongoose.Schema({
     required: false,
     default: null,
   },
+  assignedPages: {
+      type: [String],
+      default: [],
+    },
   createdAt: {
     type: Date,
     default: Date.now(),
