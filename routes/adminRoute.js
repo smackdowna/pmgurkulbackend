@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.route("/admin/stats").get(isAuthenticated, authorizeRoles("admin"), authorizeRoute(), getAdminStats);
 router.route("/admin/make-employee").put(isAuthenticated, authorizeRoles("admin"), authorizeRoute(), makeUserEmployee);
-router.route("/admin/assign-page").put(isAuthenticated, authorizeRoles("admin"), authorizeRoute(), assignPagesToUser);
+router.route("/admin/assign-page").put(isAuthenticated, authorizeRoles("admin"), assignPagesToUser);
 
 
 export default router;

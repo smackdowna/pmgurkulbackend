@@ -6,6 +6,9 @@ export const routeAccessMap = {
   //   All Users
   "/registered-users": [
     "/all/user", // GET
+    "/admin/make-employee", // PUT
+    "/user/suspend", // PUT
+    "/user/withdraw-suspension", // PUT
   ],
   //  Affiliates
   "/affiliates": [
