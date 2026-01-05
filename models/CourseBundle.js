@@ -26,7 +26,7 @@ const courseBundleSchema = new mongoose.Schema(
       required: [true, "Please enter bundle base price"],
     },
     duration : {
-      type: Number,
+      type: String,
       required: [true, "Please enter bundle duration"],
     },
     thumbnail: {

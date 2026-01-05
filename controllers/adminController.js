@@ -41,49 +41,43 @@ export const getAdminStats = catchAsyncError(async (req, res, next) => {
   });
 });
 
-export const assignPagesToUser = catchAsyncError(
-  async (req, res, next) => {
-    const { userId, pages } = req.body;
+export const assignPagesToUser = catchAsyncError(async (req, res, next) => {
+  const { userId, pages } = req.body;
 
-    const user = await User.findById(userId);
+  const user = await User.findById(userId);
 
-    if (!user) {
-      return next(new ErrorHandler("User not found", 404));
-    }
-
-    const currentPages = user.assignedPages || [];
-    const updatedPages = Array.from(new Set([...currentPages, ...pages]));
-
-    user.assignedPages = updatedPages;
-
-    await user.save({ validateBeforeSave: true });
-
-    res.status(200).json({
-      success: true,
-      message: "Pages assigned successfully",
-      user,
-    });
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
   }
-);
 
-export const makeUserEmployee = catchAsyncError(
-  async (req, res, next) => {
-    const { userId } = req.body;
+  // Replace completely
+  user.assignedPages = pages;
 
-    const user = await User.findById(userId);
+  await user.save({ validateBeforeSave: true });
 
-    if (!user) {
-      return next(new ErrorHandler("User not found", 404));
-    }
+  res.status(200).json({
+    success: true,
+    message: "Pages updated successfully",
+    user,
+  });
+});
 
-    user.role = "employee";
+export const makeUserEmployee = catchAsyncError(async (req, res, next) => {
+  const { userId } = req.body;
 
-    await user.save({ validateBeforeSave: true });
+  const user = await User.findById(userId);
 
-    res.status(200).json({
-      success: true,
-      message: "User has been promoted to employee",
-      user,
-    });
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
   }
-);
+
+  user.role = "employee";
+
+  await user.save({ validateBeforeSave: true });
+
+  res.status(200).json({
+    success: true,
+    message: "User has been promoted to employee",
+    user,
+  });
+});

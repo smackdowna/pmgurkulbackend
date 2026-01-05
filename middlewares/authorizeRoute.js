@@ -34,12 +34,18 @@ export const authorizeRoute = () => {
       .replace(/^\/api\/v[0-9]+/, "")
       .replace(/\/$/, "");
 
-    // Flatten allowed backend routes from assigned frontend pages
+    const normalize = (path = "") =>
+      path.replace(/\/+$/, "").replace(/\/:[^/]+/g, "");
+
     const allowedRoutes = user.assignedPages
       .map((frontendPath) => routeAccessMap[frontendPath] || [])
       .flat();
 
-    if (!allowedRoutes.includes(currentRoute)) {
+    const isAllowed = allowedRoutes.some((route) =>
+      normalize(currentRoute).startsWith(normalize(route))
+    );
+
+    if (!isAllowed) {
       return next(new ErrorHandler("Access denied to this route.", 403));
     }
 

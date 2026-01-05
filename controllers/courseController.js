@@ -44,6 +44,7 @@ export const createCourse = catchAsyncError(async (req, res, next) => {
   const fileUri = getDataUri(file);
   const mycloud = await cloudinary.v2.uploader.upload(fileUri.content);
 
+  const referralBonus = Number(referBonus);
   const course = await Course.create({
     title,
     description,
@@ -54,7 +55,7 @@ export const createCourse = catchAsyncError(async (req, res, next) => {
     basePrice,
     discountedPrice,
     totalDuration,
-    referBonus,
+    referBonus: referralBonus,
     poster: {
       public_id: mycloud.public_id,
       url: mycloud.secure_url,
@@ -120,6 +121,7 @@ export const updateCourse = catchAsyncError(async (req, res, next) => {
     basePrice,
     discountedPrice,
     totalDuration,
+    referBonus,
   } = req.body;
 
   const { id } = req.params;
@@ -141,6 +143,8 @@ export const updateCourse = catchAsyncError(async (req, res, next) => {
     };
   }
 
+  const referralBonus = Number(referBonus);
+
   course.title = title || course.title;
   course.description = description || course.description;
   course.courseOverview = courseOverview || course.courseOverview;
@@ -150,6 +154,7 @@ export const updateCourse = catchAsyncError(async (req, res, next) => {
   course.basePrice = basePrice || course.basePrice;
   course.discountedPrice = discountedPrice || course.discountedPrice;
   course.totalDuration = totalDuration || course.totalDuration;
+  course.referBonus = referralBonus || course.referBonus;
 
   await course.save();
 

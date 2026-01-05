@@ -17,14 +17,10 @@ export const createCourseBundle = catchAsyncError(async (req, res, next) => {
     }
   }
 
+  console.log(req.body);
+
   if (
-    !title ||
-    !description ||
-    !basePrice ||
-    !discountedPrice ||
-    duration ||
-    !Array.isArray(courseIds) ||
-    !courseIds.length
+    !req.body
   ) {
     return next(new ErrorHandler("Please enter all required fields", 400));
   }

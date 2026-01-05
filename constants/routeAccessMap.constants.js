@@ -18,6 +18,16 @@ export const routeAccessMap = {
   "/payouts": [
     "/earnings", // GET
   ],
+  //  Courses
+  "/courses": [
+    "/createcourse", // POST
+    "/update-course/:id", // POST
+    "/courses/:courseId/forum", // PUT
+    "/courseBundle/create", // POST
+    "/courseBundle/update/:id", // PUT
+    "/courseBundle/delete/:id", // PUT
+    "/lectures", // DELETE
+  ],
   //  Weekly Payouts
   "/weekly-payouts": [
     "/weekly-earnings", // GET
@@ -27,7 +37,7 @@ export const routeAccessMap = {
     "/all-orders", // GET
     "/user/:id", // GET SINGLE ORDER
     "/course/single/:id", // GET SINGLE ORDER
-    "//order/cancel", // PUT
+    "/order/cancel", // PUT
   ],
   // Talents
   "/talents": [
