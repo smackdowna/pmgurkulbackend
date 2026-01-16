@@ -47,6 +47,13 @@ const schema = new mongoose.Schema({
     type: String,
     default: "paid",
   },
+  orderType: {
+    type: String,
+    required: true,
+    enum: {
+      values: ["singleCourse", "bundleCourse"],
+    },
+  },
   createdAt: {
     type: Date,
     default: Date.now,

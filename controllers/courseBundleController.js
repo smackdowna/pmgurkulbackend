@@ -5,7 +5,7 @@ import getDataUri from "../utils/dataUri.js";
 import { CourseBundle } from "../models/CourseBundle.js";
 
 export const createCourseBundle = catchAsyncError(async (req, res, next) => {
-  let { title, description, basePrice, discountedPrice, courseIds, duration } =
+  let { title, description, basePrice, discountedPrice, courseIds, duration, referBonus } =
     req.body;
 
   // 👇 IMPORTANT: Parse courseIds if it comes as string
@@ -37,6 +37,7 @@ export const createCourseBundle = catchAsyncError(async (req, res, next) => {
     };
   }
 
+  const referralBonus = Number(referBonus);
   const bundle = await CourseBundle.create({
     title,
     description,
@@ -45,6 +46,7 @@ export const createCourseBundle = catchAsyncError(async (req, res, next) => {
     courseIds,
     thumbnail,
     duration,
+    referBonus: referralBonus,
   });
 
   res.status(201).json({
@@ -100,6 +102,7 @@ export const updateCourseBundle = catchAsyncError(async (req, res, next) => {
     discountedPrice,
     courseIds,
     duration,
+    referBonus,
   } = req.body;
   const { id } = req.params;
 
@@ -128,11 +131,14 @@ export const updateCourseBundle = catchAsyncError(async (req, res, next) => {
       typeof courseIds === "string" ? JSON.parse(courseIds) : courseIds;
   }
 
+  const referralBonus = Number(referBonus);
+  
   bundle.title = title ?? bundle.title;
   bundle.description = description ?? bundle.description;
   bundle.basePrice = basePrice ?? bundle.basePrice;
   bundle.discountedPrice = discountedPrice ?? bundle.discountedPrice;
   bundle.duration = duration ?? bundle.duration;
+  bundle.referBonus = referralBonus ?? bundle.referBonus;
 
   await bundle.save();
 

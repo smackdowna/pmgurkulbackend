@@ -22,7 +22,13 @@ export const checkout = catchAsyncError(async (req, res, next) => {
     amount: Number(amount * 100),
     currency: "INR",
   };
-  const order = await instance.orders.create(options);
+  try {
+    const order = await instance.orders.create(options);
+    res.status(200).json({ success: true, order });
+  } catch (err) {
+    console.error("Razorpay error:", err);
+    return next(new ErrorHandler("Payment order creation failed", 500));
+  }
 
   res.status(200).json({
     success: true,
@@ -55,7 +61,7 @@ export const paymentVerification = async (req, res) => {
     // });
 
     res.redirect(
-      `https://pmgurukkul.com/payment-successful/${razorpay_payment_id}`
+      `${process.env.FRONTEND_URL}/payment-successful/${razorpay_payment_id}`
     );
   } else {
     res.status(400).json({

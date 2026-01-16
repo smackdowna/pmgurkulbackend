@@ -39,6 +39,10 @@ const courseBundleSchema = new mongoose.Schema(
         required: true,
       },
     },
+    referBonus: {
+      type: Number,
+      required: [true, "Please enter bundle refer bonus"],
+    },
   },
   {
     timestamps: true,

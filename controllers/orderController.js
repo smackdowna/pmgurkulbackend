@@ -9,7 +9,7 @@ import { Counter } from "../models/CounterModel.js";
 
 //create order
 export const createOrder = catchAsyncError(async (req, res, next) => {
-  const { courseId } = req.body;
+  const { courseId, orderType } = req.body;
 
   // Generate a new paymentId
   let paymentId = "001"; // default for first order
@@ -40,17 +40,6 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
     const course = await Course.findById(id);
     if (!course)
       return next(new ErrorHandler(`Course with ID ${id} not found`, 404));
-
-    // Check if the user has already purchased this course
-    const alreadyPurchased = user.purchasedCourses.some(
-      (item) => item.courseId.toString() === id
-    );
-
-    if (alreadyPurchased) {
-      return next(
-        new ErrorHandler(`You have already purchased course with ID ${id}`, 400)
-      );
-    }
 
     orderCourses.push(course._id);
     discountedPriceTotal += course.discountedPrice;
@@ -95,6 +84,7 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
     tds: totalTDS,
     amountCredited,
     paymentId,
+    orderType
   });
 
   // ✅ Update the user’s purchasedCourses with the new structure
@@ -372,10 +362,10 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
 `;
 
   await sendEmail(
-    user.email, // First parameter: to
-    `Course Purchase Confirmation ${courseTitleString}`, // Second parameter: subject
-    `You have successfully purchased the course.`, // Third parameter: text
-    emailMessage // Fourth parameter: html
+    user.email,
+    `Course Purchase Confirmation ${courseTitleString}`,
+    `You have successfully purchased the course.`,
+    emailMessage
   );
 
   // Send response with order details
