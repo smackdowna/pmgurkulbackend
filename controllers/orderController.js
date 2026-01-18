@@ -9,7 +9,7 @@ import { Counter } from "../models/CounterModel.js";
 
 //create order
 export const createOrder = catchAsyncError(async (req, res, next) => {
-  const { courseId, orderType } = req.body;
+  const { courseId, totalPrice:totalPaidAmount, orderType } = req.body;
 
   // Generate a new paymentId
   let paymentId = "001"; // default for first order
@@ -33,7 +33,6 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
 
   const orderCourses = [];
   let totalPrice = 0;
-  let discountedPriceTotal = 0;
 
   // Process each course ID in the array
   for (const id of courseId) {
@@ -42,7 +41,6 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
       return next(new ErrorHandler(`Course with ID ${id} not found`, 404));
 
     orderCourses.push(course._id);
-    discountedPriceTotal += course.discountedPrice;
   }
 
   // Find the referrer (the user who referred the current user)
@@ -53,8 +51,8 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
   const referralCodeUsed = referrer.refralCode;
 
   // Calculate GST (18% on total discounted price)
-  const gstAmount = (discountedPriceTotal * 18) / 100;
-  totalPrice = discountedPriceTotal + gstAmount;
+  const gstAmount = (totalPaidAmount * 18) / 100;
+  totalPrice = totalPaidAmount + gstAmount;
 
   let totalCommission = 0;
   let totalTDS = 0;
@@ -72,13 +70,16 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
 
   const amountCredited = totalCommission - totalTDS;
 
+  const orderId = Math.floor(10000 + Math.random() * 90000);
+
   // Create the order
   const order = await Order.create({
+    orderId,
     user: req.user.id,
     course: orderCourses,
     referralCodeUsed,
     totalPrice,
-    discountedPrice: discountedPriceTotal,
+    discountedPrice: totalPaidAmount,
     gst: 18,
     commission: totalCommission,
     tds: totalTDS,
@@ -105,7 +106,7 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
     user: referrer._id,
     order: order._id,
     totalPrice,
-    discountedPrice: discountedPriceTotal,
+    discountedPrice: totalPaidAmount,
     gst: 18,
     commission: totalCommission,
     tds: totalTDS,
@@ -312,7 +313,7 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
                 
                 <div class="detail-row">
                     <span class="detail-label">Subtotal:</span>
-                    <span class="detail-value">₹${discountedPriceTotal.toFixed(
+                    <span class="detail-value">₹${totalPaidAmount.toFixed(
                       2
                     )}</span>
                 </div>
