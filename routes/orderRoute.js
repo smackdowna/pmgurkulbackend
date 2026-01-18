@@ -1,6 +1,7 @@
 import express from "express";
 import { isAuthenticated } from "../middlewares/auth.js";
 import {
+  cancelOrder,
   createOrder,
   getAllOrders,
   getSingleOrder,
@@ -33,6 +34,6 @@ router.route("/checkout").post(isAuthenticated, checkout);
 
 //payment verification
 router.route("/paymentVerification").post(isAuthenticated, paymentVerification);
-router.route("/order/cancel").put(isAuthenticated);
+router.route("/order/cancel/:id").put(isAuthenticated, cancelOrder);
 
 export default router;

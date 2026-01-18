@@ -59,6 +59,11 @@ const schema = new mongoose.Schema({
       values: ["singleCourse", "bundleCourse"],
     },
   },
+  bundleTitle : {
+    type: String,
+    required: false,
+    default : null
+  },
   createdAt: {
     type: Date,
     default: Date.now,

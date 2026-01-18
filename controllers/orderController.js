@@ -85,7 +85,8 @@ export const createOrder = catchAsyncError(async (req, res, next) => {
     tds: totalTDS,
     amountCredited,
     paymentId,
-    orderType
+    orderType,
+    bundleTitle : orderType === "bundleCourse" ? req.body.title : null
   });
 
   // ✅ Update the user’s purchasedCourses with the new structure
@@ -434,10 +435,10 @@ export const cancelOrder = catchAsyncError(async (req, res, next) => {
 
   if (user.role === "admin") {
     // Admin can cancel any order
-    order = await Order.findById(id);
+    order = await Order.findByIdAndUpdate(id);
   } else {
     // Normal user can cancel only their own order
-    order = await Order.findOne({ _id: id, userId: user._id });
+    order = await Order.findOne({ _id: id, user: user._id });
   }
 
   if (!order) {
